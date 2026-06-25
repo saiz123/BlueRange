@@ -1,0 +1,23 @@
+{{template "base" .}}
+{{define "title"}}BlueRange — Login{{end}}
+{{define "content"}}
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">&#9632; BlueRange</div>
+    <p class="login-tagline">SOC Analyst L1 Training Range</p>
+    {{if .Error}}
+    <div class="alert-error">{{.Error}}</div>
+    {{end}}
+    <form method="POST" action="/login" class="login-form">
+      {{if .Next}}<input type="hidden" name="next" value="{{.Next}}">{{end}}
+      <label>Username
+        <input type="text" name="username" autocomplete="username" required autofocus>
+      </label>
+      <label>Password
+        <input type="password" name="password" autocomplete="current-password" required>
+      </label>
+      <button type="submit" class="btn btn-primary">Sign in</button>
+    </form>
+  </div>
+</div>
+{{end}}

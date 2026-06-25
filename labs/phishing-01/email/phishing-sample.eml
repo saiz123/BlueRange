@@ -1,0 +1,37 @@
+Received: from corp-helpdesk.net (185.220.101.45) by mx.corp.local (10.0.0.5) with SMTP id A3B2C1D0; Sun, 10 Mar 2024 09:22:48 +0000
+Received: from mail-srv.corp-helpdesk.net (corp-helpdesk.net [185.220.101.45]) by mx.corp.local; Sun, 10 Mar 2024 09:22:47 +0000
+Authentication-Results: mx.corp.local;
+    spf=fail (domain of corp-helpdesk.net does not designate 185.220.101.45 as permitted sender) smtp.mailfrom=support@corp-helpdesk.net;
+    dkim=none (no signature);
+    dmarc=fail action=none header.from=corp-helpdesk.net
+From: IT-Support <support@corp-helpdesk.net>
+To: jane.smith@corp.local
+Reply-To: support-reply@protonmail.com
+Subject: [ACTION REQUIRED] Your corporate password expires in 24 hours
+Date: Sun, 10 Mar 2024 09:22:00 +0000
+Message-ID: <20240310092200.1234@corp-helpdesk.net>
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+X-Mailer: PHPMailer 6.0.0
+
+<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;">
+<p>Dear Jane,</p>
+<p>Your <strong>corporate credentials</strong> are set to expire in <strong>24 hours</strong>.
+To avoid losing access to your account, please click the link below and complete
+the credential reset process immediately:</p>
+<p><a href="http://corp-helpdesk.net/portal/reset?user=jane.smith&token=a1b2c3d4e5">
+http://corp-helpdesk.net/portal/reset?user=jane.smith&amp;token=a1b2c3d4e5
+</a></p>
+<p>If you do not reset your credentials within 24 hours, your account will be
+temporarily suspended for security reasons.</p>
+<p>Regards,<br>
+IT Support Team<br>
+Corporate IT Department</p>
+<p style="font-size:10px;color:#999;">
+This message was sent from an automated system. Do not reply to this email.
+If you have questions, contact helpdesk@corp.local.
+</p>
+</body>
+</html>

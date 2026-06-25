@@ -1,0 +1,113 @@
+{{template "base" .}}
+{{define "title"}}Playbooks — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>SOC Playbooks</h1>
+  <p class="page-sub">Reference these during investigations. Open mid-investigation for guidance.</p>
+</div>
+
+<div class="playbook-grid" x-data="{open:null}">
+
+  <div class="playbook-card" @click="open=open===1?null:1">
+    <div class="pb-header">
+      <span class="pb-icon">&#9993;</span>
+      <h2>Phishing Email Analysis</h2>
+      <span class="pb-toggle" x-text="open===1?'▲':'▼'"></span>
+    </div>
+    <div class="pb-body" x-show="open===1">
+      <ol>
+        <li><strong>Header analysis</strong> — Check <code>From</code>, <code>Return-Path</code>, <code>Reply-To</code> for discrepancies. Validate SPF/DKIM/DMARC.</li>
+        <li><strong>Sender domain</strong> — Check domain age (WHOIS), look-alike detection (typosquatting).</li>
+        <li><strong>URLs</strong> — Defang and check against threat intel. Look for credential-harvest page patterns (<code>/login</code>, <code>/verify</code>, redirect chains).</li>
+        <li><strong>Attachments</strong> — Hash the file, check against intel. Identify file type by magic bytes, not extension.</li>
+        <li><strong>Recipient context</strong> — Was this targeted? Did the user click? Check proxy/auth logs for follow-on activity.</li>
+        <li><strong>Verdict criteria</strong> — TP if SPF/DKIM fails AND suspicious URL/attachment. FP if all headers valid and no payload.</li>
+        <li><strong>Response</strong> — Block sender domain/IP, quarantine email, notify user, check for other recipients.</li>
+      </ol>
+      <div class="pb-mitre">
+        <strong>MITRE:</strong> T1566.001 (Spearphishing Attachment), T1566.002 (Spearphishing Link), T1078 (Valid Accounts)
+      </div>
+    </div>
+  </div>
+
+  <div class="playbook-card" @click="open=open===2?null:2">
+    <div class="pb-header">
+      <span class="pb-icon">&#128272;</span>
+      <h2>Brute Force / Password Spray</h2>
+      <span class="pb-toggle" x-text="open===2?'▲':'▼'"></span>
+    </div>
+    <div class="pb-body" x-show="open===2">
+      <ol>
+        <li><strong>Identify pattern</strong> — Brute force: many attempts for one account. Spray: few attempts across many accounts.</li>
+        <li><strong>Source analysis</strong> — Single IP vs. distributed? Check ASN, geolocation, VPN/Tor exit nodes.</li>
+        <li><strong>Success indicator</strong> — Did any login succeed? Check for successful auth event (4624) after failures (4625).</li>
+        <li><strong>Lateral movement check</strong> — If success: check for new logins, file access, network connections from the compromised account.</li>
+        <li><strong>Verdict</strong> — TP if pattern present. Escalate if successful login detected or lateral movement found.</li>
+        <li><strong>Response</strong> — Block source IP, lock affected accounts, force password reset, alert account owners.</li>
+      </ol>
+      <div class="pb-mitre">
+        <strong>MITRE:</strong> T1110 (Brute Force), T1110.003 (Password Spraying), T1078 (Valid Accounts)
+      </div>
+    </div>
+  </div>
+
+  <div class="playbook-card" @click="open=open===3?null:3">
+    <div class="pb-header">
+      <span class="pb-icon">&#128225;</span>
+      <h2>C2 Beaconing Detection</h2>
+      <span class="pb-toggle" x-text="open===3?'▲':'▼'"></span>
+    </div>
+    <div class="pb-body" x-show="open===3">
+      <ol>
+        <li><strong>Beacon pattern</strong> — Regular interval connections to same destination (every N seconds/minutes). Check jitter.</li>
+        <li><strong>Destination reputation</strong> — Look up IP/domain in threat intel. Check if newly registered or on blocklist.</li>
+        <li><strong>Protocol</strong> — HTTP/S beacons: look for small fixed-size POSTs. DNS beacons: high-entropy subdomains. Check for unusual user-agents.</li>
+        <li><strong>Process context</strong> — Which process is making the connection? Parent process anomaly? (browser spawned by Office/script)</li>
+        <li><strong>Data volume</strong> — Small outbound data is C2 check-in; large outbound may indicate exfiltration stage.</li>
+        <li><strong>Verdict</strong> — TP if regular beaconing to unknown/bad IP + process anomaly. Escalate to L2 immediately.</li>
+        <li><strong>Response</strong> — Isolate endpoint, block destination, preserve memory/logs for forensics, escalate.</li>
+      </ol>
+      <div class="pb-mitre">
+        <strong>MITRE:</strong> T1071.001 (Web Protocols), T1071.004 (DNS), T1095 (Non-Application Layer Protocol)
+      </div>
+    </div>
+  </div>
+
+  <div class="playbook-card" @click="open=open===4?null:4">
+    <div class="pb-header">
+      <span class="pb-icon">&#128187;</span>
+      <h2>Malware Triage</h2>
+      <span class="pb-toggle" x-text="open===4?'▲':'▼'"></span>
+    </div>
+    <div class="pb-body" x-show="open===4">
+      <ol>
+        <li><strong>Hash lookup</strong> — MD5/SHA1/SHA256 against VirusTotal (or local intel). Detection ratio matters.</li>
+        <li><strong>Static indicators</strong> — File type, size, PE header anomalies, embedded strings (IPs, URLs, registry keys).</li>
+        <li><strong>Sandbox report</strong> — Behavioral indicators: dropped files, registry modifications, network connections, persistence mechanisms.</li>
+        <li><strong>Process tree</strong> — How did the sample execute? Office → wscript → powershell is a red flag chain.</li>
+        <li><strong>Persistence</strong> — Check Run keys, scheduled tasks, services, startup folder.</li>
+        <li><strong>Verdict</strong> — TP if AV detections or behavioral indicators present. Escalate all confirmed malware.</li>
+        <li><strong>Response</strong> — Isolate, preserve artifacts (memory dump), IOC extraction, sweep environment for same hash.</li>
+      </ol>
+      <div class="pb-mitre">
+        <strong>MITRE:</strong> T1059 (Scripting), T1547 (Autostart), T1055 (Process Injection), T1486 (Ransomware)
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="nist-box">
+  <h2>NIST SP 800-61 Incident Response Lifecycle</h2>
+  <div class="nist-phases">
+    <div class="nist-phase"><span class="phase-num">1</span><strong>Preparation</strong><p>Policies, tools, team readiness</p></div>
+    <div class="nist-arrow">→</div>
+    <div class="nist-phase"><span class="phase-num">2</span><strong>Detection &amp; Analysis</strong><p>Identify, triage, establish scope</p></div>
+    <div class="nist-arrow">→</div>
+    <div class="nist-phase"><span class="phase-num">3</span><strong>Containment, Eradication &amp; Recovery</strong><p>Isolate, remove, restore</p></div>
+    <div class="nist-arrow">→</div>
+    <div class="nist-phase"><span class="phase-num">4</span><strong>Post-Incident Activity</strong><p>Lessons learned, report</p></div>
+  </div>
+  <p class="nist-note">As L1: you operate in phases 2 and 3. Escalate to L2 when scope exceeds single-host or critical data is at risk.</p>
+</div>
+{{end}}

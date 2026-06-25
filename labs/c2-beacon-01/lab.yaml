@@ -1,0 +1,42 @@
+id: c2-beacon-01
+title: "C2 Beaconing — Periodic HTTPS Callbacks"
+difficulty: core
+category: c2
+tags: [c2, beaconing, network, malware, firewall]
+mitre:
+  - id: T1071.001
+    name: "Application Layer Protocol: Web Protocols"
+  - id: T1059.001
+    name: "Command and Scripting Interpreter: PowerShell"
+
+alert:
+  severity: high
+  source: firewall
+  rule: "Periodic Outbound HTTPS to Unknown External Host — Possible C2 Beacon"
+  triggered_at: "2024-06-01T03:15:00Z"
+  src_ip: "10.0.1.92"
+  recipient: ""
+
+scenario: >
+  The network monitoring system detected periodic HTTPS connections from workstation
+  WS-DEV-09 (10.0.1.92) to an unknown external IP every 5 minutes — even outside
+  business hours. The regularity triggered a beaconing detection rule. Analyze the
+  firewall and DNS logs to characterize the traffic and determine if this is C2
+  activity or a legitimate application.
+
+rationale_keywords:
+  - "beacon"
+  - "interval"
+  - "periodic"
+  - "C2"
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre: [T1071.001]
+  score_breakdown:
+    correct_verdict:   40
+    required_findings: 30
+    correct_mitre:     20
+    writeup_quality:   10
+  passing_score: 70

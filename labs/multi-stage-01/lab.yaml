@@ -1,0 +1,51 @@
+id: multi-stage-01
+title: "Multi-Stage Intrusion — Full Kill Chain"
+difficulty: realistic
+category: multi-stage
+tags: [multi-stage, kill-chain, phishing, lateral-movement, exfiltration, incident-response]
+mitre:
+  - id: T1566.001
+    name: "Phishing: Spearphishing Attachment"
+  - id: T1059.001
+    name: "Command and Scripting Interpreter: PowerShell"
+  - id: T1047
+    name: "Windows Management Instrumentation"
+  - id: T1003.001
+    name: "OS Credential Dumping: LSASS Memory"
+  - id: T1048
+    name: "Exfiltration Over Alternative Protocol"
+
+alert:
+  severity: critical
+  source: siem
+  rule: "SIEM Correlation: Chained Suspicious Events — Possible Multi-Stage Intrusion"
+  triggered_at: "2024-07-01T06:00:00Z"
+  src_ip: "10.0.1.55"
+  recipient: ""
+
+scenario: >
+  The SIEM correlation engine fired a high-severity alert tying together multiple
+  events over the past 72 hours: a phishing email, a macro execution, C2 beaconing,
+  credential dumping, lateral movement, and DNS-based exfiltration — all traceable
+  to an initial phishing email received by john.doe@corp.local. You are the L1 analyst
+  on duty. Your task is to build the complete attack timeline, identify all affected
+  systems and accounts, classify each stage with MITRE techniques, and make a
+  well-reasoned escalation decision.
+
+rationale_keywords:
+  - "phishing"
+  - "lateral movement"
+  - "credential"
+  - "exfiltration"
+  - "kill chain"
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre: [T1566.001, T1047, T1048]
+  score_breakdown:
+    correct_verdict:   40
+    required_findings: 30
+    correct_mitre:     20
+    writeup_quality:   10
+  passing_score: 70

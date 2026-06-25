@@ -1,0 +1,20 @@
+{{template "base" .}}
+{{define "title"}}Walkthrough: {{.Lab.Title}} — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div class="inv-breadcrumb"><a href="/investigate/{{.Lab.ID}}">← Back to Investigation</a></div>
+  <h1>Walkthrough: {{.Lab.Title}}</h1>
+  <div class="wt-badges">
+    <span class="diff-badge {{diffClass .Lab.Difficulty}}">{{.Lab.Difficulty}}</span>
+    <span class="category-tag">{{.Lab.Category}}</span>
+  </div>
+</div>
+
+<div class="walkthrough-body">
+  {{if .Content}}
+  <pre class="wt-content">{{.Content}}</pre>
+  {{else}}
+  <p class="no-results">No walkthrough available for this lab yet.</p>
+  {{end}}
+</div>
+{{end}}

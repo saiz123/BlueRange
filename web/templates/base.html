@@ -1,0 +1,33 @@
+{{define "base"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{block "title" .}}BlueRange{{end}}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/htmx.min.js" defer></script>
+  <script src="/static/alpine.min.js" defer></script>
+</head>
+<body>
+  {{if .User}}
+  <nav class="nav">
+    <a class="nav-brand" href="/queue">&#9632; BlueRange</a>
+    <div class="nav-links">
+      <a href="/queue">Alert Queue</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/playbooks">Playbooks</a>
+      {{if eq .User.Role "admin"}}<a href="/admin">Admin</a>{{end}}
+    </div>
+    <div class="nav-user">
+      <span class="nav-username">{{.User.Username}}</span>
+      <form method="POST" action="/logout" style="display:inline">
+        <button type="submit" class="btn-ghost">Sign out</button>
+      </form>
+    </div>
+  </nav>
+  {{end}}
+  <main class="main">
+    {{block "content" .}}{{end}}
+  </main>
+</body>
+</html>{{end}}

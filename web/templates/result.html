@@ -1,0 +1,60 @@
+{{template "base" .}}
+{{define "title"}}Result: {{.Lab.Title}} — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div class="inv-breadcrumb"><a href="/queue">← Alert Queue</a></div>
+  <h1>Investigation Complete</h1>
+  <p class="page-sub">{{.Lab.Title}}</p>
+</div>
+
+{{$inv := .Inv}}
+{{$score := derefInt $inv.Score}}
+
+<div class="result-hero {{scoreClass $score 100}}">
+  <div class="result-score">{{$score}}<span class="result-max">/100</span></div>
+  <div class="result-verdict">
+    {{if ge $score 70}}
+    <span class="verdict-pass">&#10003; Passed</span>
+    {{else}}
+    <span class="verdict-fail">&#10007; Needs Review</span>
+    {{end}}
+  </div>
+</div>
+
+<div class="feedback-section">
+  <h2>Grading Breakdown</h2>
+  <div class="feedback-list">
+    {{range $inv.Feedback}}
+    <div class="feedback-item {{if .Passed}}fb-pass{{else}}fb-fail{{end}}">
+      <div class="fb-header">
+        <span class="fb-category">{{.Category}}</span>
+        {{if gt .Max 0}}
+        <span class="fb-score">{{.Points}}/{{.Max}}</span>
+        {{end}}
+        <span class="fb-icon">{{if .Passed}}&#10003;{{else}}&#10007;{{end}}</span>
+      </div>
+      <p class="fb-message">{{.Message}}</p>
+    </div>
+    {{end}}
+  </div>
+</div>
+
+<div class="submission-summary">
+  <h2>Your Submission</h2>
+  <div class="summary-grid">
+    <div class="summary-item"><span class="summary-key">Verdict</span><span class="summary-val">{{$inv.Verdict}}</span></div>
+    <div class="summary-item"><span class="summary-key">Severity</span><span class="summary-val">{{$inv.Severity}}</span></div>
+    <div class="summary-item"><span class="summary-key">Escalation</span><span class="summary-val">{{if $inv.Escalated}}Escalate to L2{{else}}Close{{end}}</span></div>
+    <div class="summary-item"><span class="summary-key">MITRE Tags</span><span class="summary-val">{{join $inv.Mitre ", "}}</span></div>
+  </div>
+  <div class="summary-rationale">
+    <span class="summary-key">Write-up</span>
+    <p>{{$inv.Rationale}}</p>
+  </div>
+</div>
+
+<div class="result-actions">
+  <a href="/walkthrough/{{.Lab.ID}}" class="btn btn-secondary">View Walkthrough</a>
+  <a href="/queue" class="btn btn-primary">Next Alert</a>
+</div>
+{{end}}

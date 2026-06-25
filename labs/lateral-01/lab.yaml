@@ -1,0 +1,44 @@
+id: lateral-01
+title: "Lateral Movement via WMI and Admin Shares"
+difficulty: realistic
+category: lateral-movement
+tags: [lateral-movement, wmi, smb, credential-use, active-directory]
+mitre:
+  - id: T1047
+    name: "Windows Management Instrumentation"
+  - id: T1021.002
+    name: "Remote Services: SMB/Windows Admin Shares"
+  - id: T1078
+    name: "Valid Accounts"
+
+alert:
+  severity: critical
+  source: sysmon
+  rule: "WMI Remote Process Execution on Multiple Hosts from Single Source"
+  triggered_at: "2024-06-10T02:44:00Z"
+  src_ip: "10.0.1.92"
+  recipient: ""
+
+scenario: >
+  The Sysmon/EDR platform detected WMI process execution originating from
+  WS-DEV-09 (10.0.1.92) targeting three other internal hosts. This follows
+  the C2 beaconing incident from last week on the same workstation. Analyze
+  the Sysmon and auth logs to map the lateral movement path and identify which
+  hosts and accounts are involved.
+
+rationale_keywords:
+  - "WMI"
+  - "lateral movement"
+  - "admin shares"
+  - "compromised account"
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre: [T1047]
+  score_breakdown:
+    correct_verdict:   40
+    required_findings: 30
+    correct_mitre:     20
+    writeup_quality:   10
+  passing_score: 70

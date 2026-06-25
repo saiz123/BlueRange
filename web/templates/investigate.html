@@ -1,0 +1,246 @@
+{{template "base" .}}
+{{define "title"}}Investigate: {{.Lab.Title}} — BlueRange{{end}}
+{{define "content"}}
+<div class="inv-header">
+  <div class="inv-breadcrumb"><a href="/queue">← Alert Queue</a></div>
+  <div class="inv-title-row">
+    <h1>{{.Lab.Title}}</h1>
+    <div class="inv-badges">
+      <span class="sev-badge {{sevClass .Lab.Alert.Severity}}">{{upper .Lab.Alert.Severity}}</span>
+      <span class="diff-badge {{diffClass .Lab.Difficulty}}">{{.Lab.Difficulty}}</span>
+      {{if .Inv}}<span class="mode-badge">{{upper .Inv.Mode}} MODE</span>{{end}}
+    </div>
+  </div>
+  {{if and .Inv (eq .Inv.Mode "guided")}}
+  <div class="hint-bar">
+    &#128214; Guided mode — hints available.
+    <a href="/walkthrough/{{.Lab.ID}}" target="_blank" class="hint-link">Open walkthrough</a>
+  </div>
+  {{end}}
+</div>
+
+{{if not .Inv}}
+<div class="start-panel">
+  <h2>Start Investigation</h2>
+  <p class="scenario">{{.Lab.Scenario}}</p>
+  <form method="POST" action="/investigate/{{.Lab.ID}}/start" class="start-form">
+    <div class="mode-choice">
+      <label class="mode-opt">
+        <input type="radio" name="mode" value="guided" checked>
+        <span>
+          <strong>Guided Mode</strong>
+          <small>Step hints + walkthrough access. Great for learning.</small>
+        </span>
+      </label>
+      <label class="mode-opt">
+        <input type="radio" name="mode" value="exam">
+        <span>
+          <strong>Exam Mode</strong>
+          <small>No hints. Scored strictly. Use to test your skills.</small>
+        </span>
+      </label>
+    </div>
+    <button type="submit" class="btn btn-primary">Begin Investigation</button>
+  </form>
+</div>
+{{else}}
+
+<div class="inv-workspace" x-data="{tab:'alert'}">
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab" :class="tab==='alert'&&'tab-active'" @click="tab='alert'">&#9888; Alert</button>
+    <button class="tab" :class="tab==='logs'&&'tab-active'" @click="tab='logs'">&#128196; Logs</button>
+    {{if .Lab.HasEmail}}
+    <button class="tab" :class="tab==='email'&&'tab-active'" @click="tab='email'">&#9993; Email</button>
+    {{end}}
+    <button class="tab" :class="tab==='intel'&&'tab-active'" @click="tab='intel'">&#128270; Threat Intel</button>
+    {{if .Lab.HasPCAP}}
+    <button class="tab" :class="tab==='pcap'&&'tab-active'" @click="tab='pcap'">&#128225; PCAP</button>
+    {{end}}
+  </div>
+
+  <!-- Alert panel -->
+  <div class="tab-panel" x-show="tab==='alert'">
+    <div class="alert-detail">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-key">Rule</span><span class="detail-val">{{.Lab.Alert.Rule}}</span></div>
+        <div class="detail-item"><span class="detail-key">Source</span><span class="detail-val">{{.Lab.Alert.Source}}</span></div>
+        <div class="detail-item"><span class="detail-key">Severity</span><span class="detail-val"><span class="sev-badge {{sevClass .Lab.Alert.Severity}}">{{upper .Lab.Alert.Severity}}</span></span></div>
+        <div class="detail-item"><span class="detail-key">Triggered</span><span class="detail-val mono">{{.Lab.Alert.TriggeredAt}}</span></div>
+        {{if .Lab.Alert.SrcIP}}<div class="detail-item"><span class="detail-key">Source IP</span><span class="detail-val mono">{{.Lab.Alert.SrcIP}}</span></div>{{end}}
+        {{if .Lab.Alert.Recipient}}<div class="detail-item"><span class="detail-key">Recipient</span><span class="detail-val mono">{{.Lab.Alert.Recipient}}</span></div>{{end}}
+      </div>
+      <div class="scenario-box">
+        <h3>Scenario</h3>
+        <p>{{.Lab.Scenario}}</p>
+      </div>
+      <div class="mitre-preview">
+        <h3>Related MITRE ATT&amp;CK</h3>
+        <div class="mitre-tags">
+          {{range .Lab.Mitre}}
+          <a class="mitre-tag" href="https://attack.mitre.org/techniques/{{.ID}}/" target="_blank" rel="noopener">
+            {{.ID}} — {{.Name}}
+          </a>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logs panel -->
+  <div class="tab-panel" x-show="tab==='logs'">
+    <div class="log-toolbar">
+      <input
+        type="text"
+        class="log-search"
+        placeholder="Search logs (keyword, IP, username…)"
+        hx-get="/api/logs/{{.Lab.ID}}"
+        hx-trigger="input changed delay:300ms, search"
+        hx-target="#log-results"
+        name="q"
+        hx-include="[name='source']">
+      <select name="source" class="source-filter"
+        hx-get="/api/logs/{{.Lab.ID}}"
+        hx-trigger="change"
+        hx-target="#log-results"
+        hx-include="[name='q']">
+        <option value="">All sources</option>
+        <option value="auth">auth</option>
+        <option value="windows-security">windows-security</option>
+        <option value="sysmon">sysmon</option>
+        <option value="firewall">firewall</option>
+        <option value="proxy">proxy</option>
+        <option value="dns">dns</option>
+      </select>
+    </div>
+    <div id="log-results" class="log-results"
+      hx-get="/api/logs/{{.Lab.ID}}"
+      hx-trigger="load">
+      <p class="log-loading">Loading logs…</p>
+    </div>
+  </div>
+
+  <!-- Email panel -->
+  {{if .Lab.HasEmail}}
+  <div class="tab-panel" x-show="tab==='email'">
+    <div id="email-panel"
+      hx-get="/api/email/{{.Lab.ID}}"
+      hx-trigger="load">
+      <p class="log-loading">Loading email…</p>
+    </div>
+  </div>
+  {{end}}
+
+  <!-- Threat Intel panel -->
+  <div class="tab-panel" x-show="tab==='intel'">
+    <div class="intel-intro">
+      <p>Look up IPs, domains, or file hashes against the threat intelligence database.</p>
+      {{if and .Inv (eq .Inv.Mode "guided")}}
+      <div class="hint">&#128161; <strong>Hint:</strong> Try looking up the source IP <code>{{.Lab.Alert.SrcIP}}</code> or the sender domain.</div>
+      {{end}}
+    </div>
+    <form class="intel-form"
+      hx-post="/api/enrichment"
+      hx-target="#intel-result"
+      hx-swap="innerHTML">
+      <input type="text" name="indicator" class="intel-input" placeholder="185.220.101.45 or evil.domain or md5hash…" required>
+      <button type="submit" class="btn btn-primary">Look Up</button>
+    </form>
+    <div id="intel-result" class="intel-result"></div>
+  </div>
+
+  {{if .Lab.HasPCAP}}
+  <div class="tab-panel" x-show="tab==='pcap'">
+    <p class="pcap-note">PCAP analysis: download the file below and open in Wireshark for packet-level inspection.</p>
+    <p class="pcap-note" style="margin-top:8px;color:#8b949e;font-size:12px;">File located at: <code>labs/{{.Lab.ID}}/pcap/</code> in your BlueRange installation.</p>
+  </div>
+  {{end}}
+
+</div><!-- inv-workspace -->
+
+<!-- Verdict Form -->
+{{if eq .Inv.Status "in_progress"}}
+<div class="verdict-section">
+  <h2>Verdict &amp; Write-up</h2>
+  <form method="POST" action="/investigate/{{.Lab.ID}}/submit" class="verdict-form">
+    <div class="form-grid">
+      <label class="form-group">
+        <span class="form-label">Verdict <span class="required">*</span></span>
+        <select name="verdict" required>
+          <option value="">— Select —</option>
+          <option value="true_positive" {{if eq .Inv.Verdict "true_positive"}}selected{{end}}>True Positive</option>
+          <option value="false_positive" {{if eq .Inv.Verdict "false_positive"}}selected{{end}}>False Positive</option>
+        </select>
+      </label>
+      <label class="form-group">
+        <span class="form-label">Severity <span class="required">*</span></span>
+        <select name="severity" required>
+          <option value="">— Select —</option>
+          <option value="critical" {{if eq .Inv.Severity "critical"}}selected{{end}}>Critical</option>
+          <option value="high"     {{if eq .Inv.Severity "high"}}selected{{end}}>High</option>
+          <option value="medium"   {{if eq .Inv.Severity "medium"}}selected{{end}}>Medium</option>
+          <option value="low"      {{if eq .Inv.Severity "low"}}selected{{end}}>Low</option>
+          <option value="info"     {{if eq .Inv.Severity "info"}}selected{{end}}>Informational</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="form-group">
+      <span class="form-label">Rationale &amp; Findings <span class="required">*</span></span>
+      <textarea name="rationale" rows="6" required
+        placeholder="Describe the evidence you found, why this is or isn't malicious, and what actions you recommend…">{{.Inv.Rationale}}</textarea>
+      <small class="form-hint">Minimum 25 words. Document specific IOCs, log entries, and your reasoning.</small>
+    </div>
+
+    <div class="form-group">
+      <span class="form-label">MITRE ATT&amp;CK Techniques</span>
+      <div class="mitre-select" x-data="{open:false, selected:{{mitreTags .Inv.Mitre}}}">
+        <button type="button" class="mitre-toggle" @click="open=!open">
+          Select techniques <span x-text="selected.length ? '('+selected.length+' selected)' : ''"></span>
+        </button>
+        <div class="mitre-dropdown" x-show="open" @click.outside="open=false">
+          {{range .MitreList}}
+          <label class="mitre-opt">
+            <input type="checkbox" name="mitre" value="{{.ID}}"
+              x-model="selected">
+            <span><strong>{{.ID}}</strong> — {{.Name}}</span>
+          </label>
+          {{end}}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <span class="form-label">Escalation Decision <span class="required">*</span></span>
+      <div class="radio-group">
+        <label class="radio-opt">
+          <input type="radio" name="escalation" value="close" required
+            {{if not .Inv.Escalated}}checked{{end}}>
+          Close (L1 can handle)
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="escalation" value="escalate"
+            {{if .Inv.Escalated}}checked{{end}}>
+          Escalate to L2
+        </label>
+      </div>
+    </div>
+
+    <div class="verdict-actions">
+      <button type="submit" class="btn btn-primary btn-lg">Submit Verdict</button>
+      {{if eq .Inv.Mode "guided"}}
+      <a href="/walkthrough/{{.Lab.ID}}" class="btn btn-ghost" target="_blank">View Walkthrough</a>
+      {{end}}
+    </div>
+  </form>
+</div>
+{{else}}
+<div class="verdict-done">
+  <p>Verdict submitted. <a href="/result/{{.Lab.ID}}">View your score &rarr;</a></p>
+</div>
+{{end}}
+
+{{end}}{{/* .Inv */}}
+
+{{end}}

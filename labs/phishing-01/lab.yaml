@@ -1,0 +1,43 @@
+id: phishing-01
+title: "Suspicious Email — Credential Harvest"
+difficulty: intro
+category: phishing
+tags: [phishing, email-analysis, social-engineering, credential-theft]
+mitre:
+  - id: T1566.001
+    name: "Phishing: Spearphishing Attachment"
+  - id: T1078
+    name: "Valid Accounts"
+
+alert:
+  severity: medium
+  source: email-gateway
+  rule: "Suspicious Email — Credential Harvest Keyword"
+  triggered_at: "2024-03-10T09:23:00Z"
+  src_ip: "185.220.101.45"
+  recipient: "jane.smith@corp.local"
+
+scenario: >
+  A user (jane.smith@corp.local) reports a suspicious email from
+  "IT-Support <support@corp-helpdesk.net>" asking her to urgently reset her
+  password via a link. The email-gateway alert triggered on the keyword
+  "credential" in the message body. Your job: analyze the email headers and
+  related proxy/auth logs, look up the source IP, and determine whether this
+  is a phishing attempt or a legitimate IT communication.
+
+rationale_keywords:
+  - "SPF"
+  - "sender domain"
+  - "credential"
+  - "phishing"
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: close
+  required_mitre: [T1566.001]
+  score_breakdown:
+    correct_verdict:   40
+    required_findings: 30
+    correct_mitre:     20
+    writeup_quality:   10
+  passing_score: 70

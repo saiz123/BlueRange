@@ -1,0 +1,41 @@
+id: web-attack-01
+title: "SQL Injection via Web Application"
+difficulty: core
+category: web-attack
+tags: [sqli, web-attack, injection, data-breach]
+mitre:
+  - id: T1190
+    name: "Exploit Public-Facing Application"
+  - id: T1083
+    name: "File and Directory Discovery"
+
+alert:
+  severity: high
+  source: waf
+  rule: "WAF: SQL Injection Detected — Multiple Signatures"
+  triggered_at: "2024-05-03T11:47:00Z"
+  src_ip: "45.33.32.156"
+  recipient: ""
+
+scenario: >
+  The Web Application Firewall alerted on SQL injection signatures targeting the
+  company's customer portal (portal.corp.local). The source IP sent a series of
+  requests with SQL payloads attempting to enumerate and extract data. Review the
+  WAF and web proxy logs to determine the scope of the attack — was data extracted?
+
+rationale_keywords:
+  - "SQL injection"
+  - "union select"
+  - "data extraction"
+  - "WAF"
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre: [T1190]
+  score_breakdown:
+    correct_verdict:   40
+    required_findings: 30
+    correct_mitre:     20
+    writeup_quality:   10
+  passing_score: 70

@@ -1,0 +1,71 @@
+{{template "base" .}}
+{{define "title"}}Alert Queue — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>Alert Queue</h1>
+  <p class="page-sub">Pick an alert and work the investigation.</p>
+</div>
+
+<div class="queue-filters" x-data="{diff:'all'}">
+  <button class="filter-btn" :class="diff==='all'&&'active'" @click="diff='all'">All</button>
+  <button class="filter-btn" :class="diff==='intro'&&'active'" @click="diff='intro'">Intro</button>
+  <button class="filter-btn" :class="diff==='core'&&'active'" @click="diff='core'">Core</button>
+  <button class="filter-btn" :class="diff==='realistic'&&'active'" @click="diff='realistic'">Realistic</button>
+
+  <div class="queue-table-wrap">
+    <table class="queue-table">
+      <thead>
+        <tr>
+          <th>Severity</th>
+          <th>Alert</th>
+          <th>Category</th>
+          <th>Difficulty</th>
+          <th>Status</th>
+          <th>Score</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Alerts}}
+        <tr x-show="diff==='all' || diff==='{{.Lab.Difficulty}}'" class="queue-row {{if eq .Status "submitted"}}row-done{{end}}">
+          <td><span class="sev-badge {{sevClass .Lab.Alert.Severity}}">{{upper .Lab.Alert.Severity}}</span></td>
+          <td class="alert-title">
+            <span class="alert-rule">{{.Lab.Alert.Rule}}</span>
+            <span class="alert-source">{{.Lab.Alert.Source}}</span>
+          </td>
+          <td><span class="category-tag">{{.Lab.Category}}</span></td>
+          <td><span class="diff-badge {{diffClass .Lab.Difficulty}}">{{.Lab.Difficulty}}</span></td>
+          <td>
+            {{if eq .Status "submitted"}}
+              <span class="status-done">&#10003; Closed</span>
+            {{else if eq .Status "in_progress"}}
+              <span class="status-wip">&#9679; In Progress</span>
+            {{else}}
+              <span class="status-open">Open</span>
+            {{end}}
+          </td>
+          <td>
+            {{if .Score}}<span class="score-badge">{{.Score}}/100</span>{{else}}—{{end}}
+          </td>
+          <td>
+            {{if eq .Status ""}}
+            <form method="POST" action="/investigate/{{.Lab.ID}}/start">
+              <select name="mode" class="mode-select">
+                <option value="guided">Guided</option>
+                <option value="exam">Exam</option>
+              </select>
+              <button type="submit" class="btn btn-sm btn-primary">Investigate</button>
+            </form>
+            {{else}}
+            <a href="/investigate/{{.Lab.ID}}" class="btn btn-sm btn-secondary">
+              {{if eq .Status "submitted"}}Review{{else}}Continue{{end}}
+            </a>
+            {{end}}
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{end}}

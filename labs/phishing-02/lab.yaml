@@ -1,0 +1,45 @@
+id: phishing-02
+title: "Business Email Compromise — CEO Fraud"
+difficulty: core
+category: phishing
+tags: [bec, phishing, social-engineering, wire-fraud]
+mitre:
+  - id: T1566.002
+    name: "Phishing: Spearphishing Link"
+  - id: T1078
+    name: "Valid Accounts"
+  - id: T1534
+    name: "Internal Spearphishing"
+
+alert:
+  severity: high
+  source: email-gateway
+  rule: "Possible BEC — Impersonation of Executive"
+  triggered_at: "2024-04-02T14:31:00Z"
+  src_ip: "91.108.4.201"
+  recipient: "finance@corp.local"
+
+scenario: >
+  The finance department received an email that appears to come from the CEO
+  (ceo@corp.local) requesting an urgent wire transfer of $47,500 to a new vendor.
+  The email-gateway flagged this as a possible BEC attempt because the sending IP
+  does not match the CEO's normal sending infrastructure. Analyze the email headers,
+  check auth logs for the CEO's account, and determine if this is a real request
+  or an impersonation.
+
+rationale_keywords:
+  - "impersonation"
+  - "from header"
+  - "domain"
+  - "BEC"
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre: [T1566.002]
+  score_breakdown:
+    correct_verdict:   40
+    required_findings: 30
+    correct_mitre:     20
+    writeup_quality:   10
+  passing_score: 70

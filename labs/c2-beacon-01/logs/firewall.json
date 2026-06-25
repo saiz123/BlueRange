@@ -1,0 +1,11 @@
+{"timestamp":"2024-06-01T00:00:02Z","level":"warn","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.92:52341 -> 185.220.101.45:443 bytes_out=1240 bytes_in=384 duration=2s app=HTTPS"}
+{"timestamp":"2024-06-01T00:05:03Z","level":"warn","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.92:52398 -> 185.220.101.45:443 bytes_out=1238 bytes_in=382 duration=2s app=HTTPS"}
+{"timestamp":"2024-06-01T00:10:01Z","level":"warn","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.92:52461 -> 185.220.101.45:443 bytes_out=1242 bytes_in=385 duration=2s app=HTTPS"}
+{"timestamp":"2024-06-01T00:15:02Z","level":"warn","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.92:52522 -> 185.220.101.45:443 bytes_out=1239 bytes_in=383 duration=2s app=HTTPS"}
+{"timestamp":"2024-06-01T00:20:01Z","level":"warn","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.92:52589 -> 185.220.101.45:443 bytes_out=1241 bytes_in=384 duration=2s app=HTTPS"}
+{"timestamp":"2024-06-01T01:00:00Z","level":"warn","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.92:53102 -> 185.220.101.45:443 bytes_out=1240 bytes_in=380 duration=2s app=HTTPS"}
+{"timestamp":"2024-06-01T02:00:01Z","level":"warn","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.92:53891 -> 185.220.101.45:443 bytes_out=1243 bytes_in=386 duration=2s app=HTTPS"}
+{"timestamp":"2024-06-01T03:00:02Z","level":"warn","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.92:54210 -> 185.220.101.45:443 bytes_out=1241 bytes_in=384 duration=2s app=HTTPS"}
+{"timestamp":"2024-06-01T03:15:01Z","level":"warn","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.92:54341 -> 185.220.101.45:443 bytes_out=1240 bytes_in=384 duration=2s app=HTTPS"}
+{"timestamp":"2024-06-01T08:00:11Z","level":"info","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.50:61022 -> 8.8.8.8:443 bytes_out=845 bytes_in=22401 duration=4s app=HTTPS"}
+{"timestamp":"2024-06-01T08:05:22Z","level":"info","host":"fw.corp.local","source":"firewall","message":"ALLOW TCP 10.0.1.33:61444 -> 140.82.112.3:443 bytes_out=2341 bytes_in=98442 duration=18s app=HTTPS"}

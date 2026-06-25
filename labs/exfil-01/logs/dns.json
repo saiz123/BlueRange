@@ -1,0 +1,11 @@
+{"timestamp":"2024-06-12T04:00:01Z","level":"error","host":"dns.corp.local","source":"dns","message":"DNS query: aGVsbG8gd29ybGQ.dl.bad-payload.ru TXT -> NXDOMAIN (client: 10.0.1.92)"}
+{"timestamp":"2024-06-12T04:00:02Z","level":"error","host":"dns.corp.local","source":"dns","message":"DNS query: dGhpcyBpcyBhIHRlc3Q.dl.bad-payload.ru TXT -> NXDOMAIN (client: 10.0.1.92)"}
+{"timestamp":"2024-06-12T04:00:03Z","level":"error","host":"dns.corp.local","source":"dns","message":"DNS query: dXNlcm5hbWU6Ym9iLmFk.dl.bad-payload.ru TXT -> NXDOMAIN (client: 10.0.1.92)"}
+{"timestamp":"2024-06-12T04:00:04Z","level":"error","host":"dns.corp.local","source":"dns","message":"DNS query: bWluX3Bhc3N3b3JkOlBAc3M.dl.bad-payload.ru TXT -> NXDOMAIN (client: 10.0.1.92)"}
+{"timestamp":"2024-06-12T04:00:05Z","level":"error","host":"dns.corp.local","source":"dns","message":"DNS query: c3dvcmQyMDI0IQ.dl.bad-payload.ru TXT -> NXDOMAIN (client: 10.0.1.92)"}
+{"timestamp":"2024-06-12T04:01:00Z","level":"error","host":"dns.corp.local","source":"dns","message":"DNS query: d2luZG93c19kb21haW46Q09SUC5MT0NBTA.dl.bad-payload.ru TXT -> NXDOMAIN (client: 10.0.1.92)"}
+{"timestamp":"2024-06-12T04:02:00Z","level":"error","host":"dns.corp.local","source":"dns","message":"DNS query: aXBfcmFuZ2U6MTAuMC4xLjAvMjQ.dl.bad-payload.ru TXT -> NXDOMAIN (client: 10.0.1.92)"}
+{"timestamp":"2024-06-12T04:05:00Z","level":"error","host":"dns.corp.local","source":"dns","message":"DNS query: dXNlcnNfZHVtcF9zdGFydA.dl.bad-payload.ru TXT -> NXDOMAIN (client: 10.0.1.92) - note: 4800 queries this hour"}
+{"timestamp":"2024-06-12T04:22:00Z","level":"error","host":"dns.corp.local","source":"dns","message":"High-entropy subdomain alert triggered. Source: 10.0.1.92. Domain: dl.bad-payload.ru. Query count last hour: 4847. Avg subdomain entropy: 4.82 bits/char (threshold: 3.5)"}
+{"timestamp":"2024-06-12T08:00:01Z","level":"info","host":"dns.corp.local","source":"dns","message":"DNS query: google.com A -> 142.250.80.46 (client: 10.0.1.50)"}
+{"timestamp":"2024-06-12T08:01:11Z","level":"info","host":"dns.corp.local","source":"dns","message":"DNS query: microsoft.com A -> 20.236.44.162 (client: 10.0.1.33)"}

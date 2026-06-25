@@ -1,0 +1,44 @@
+id: brute-force-01
+title: "RDP Password Spray Attack"
+difficulty: intro
+category: brute-force
+tags: [brute-force, password-spray, rdp, active-directory]
+mitre:
+  - id: T1110.003
+    name: "Brute Force: Password Spraying"
+  - id: T1078
+    name: "Valid Accounts"
+  - id: T1021.001
+    name: "Remote Services: Remote Desktop Protocol"
+
+alert:
+  severity: high
+  source: windows-security
+  rule: "Multiple Failed RDP Logon Attempts — Password Spray Pattern"
+  triggered_at: "2024-04-15T22:14:00Z"
+  src_ip: "203.0.113.88"
+  recipient: ""
+
+scenario: >
+  The SIEM triggered on a rule detecting multiple failed Windows logon events
+  (Event ID 4625) within a 5-minute window from the same source IP targeting
+  multiple user accounts. The pattern is consistent with a password spray attack
+  against the company's RDP gateway. Analyze the auth logs, determine if any
+  accounts were compromised, and recommend the appropriate response.
+
+rationale_keywords:
+  - "password spray"
+  - "multiple accounts"
+  - "4625"
+  - "successful"
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre: [T1110.003]
+  score_breakdown:
+    correct_verdict:   40
+    required_findings: 30
+    correct_mitre:     20
+    writeup_quality:   10
+  passing_score: 70

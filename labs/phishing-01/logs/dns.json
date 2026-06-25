@@ -1,0 +1,5 @@
+{"timestamp":"2024-03-10T09:22:50Z","level":"info","host":"dns.corp.local","source":"dns","message":"DNS query: corp-helpdesk.net A -> 185.220.101.45 (client: 10.0.1.42, jane.smith-pc)"}
+{"timestamp":"2024-03-10T09:22:50Z","level":"warn","host":"dns.corp.local","source":"dns","message":"DNS lookup: corp-helpdesk.net - domain registered 2024-02-28 (11 days old) - registrar: Namecheap - no corporate record"}
+{"timestamp":"2024-03-10T09:24:07Z","level":"info","host":"dns.corp.local","source":"dns","message":"DNS query: corp-helpdesk.net A -> 185.220.101.45 (client: 10.0.1.42, jane.smith-pc)"}
+{"timestamp":"2024-03-10T09:30:01Z","level":"info","host":"dns.corp.local","source":"dns","message":"DNS query: microsoft.com A -> 20.236.44.162 (client: 10.0.1.55, john.doe-pc)"}
+{"timestamp":"2024-03-10T09:35:45Z","level":"info","host":"dns.corp.local","source":"dns","message":"DNS query: github.com A -> 140.82.112.3 (client: 10.0.1.10, bob.admin-pc)"}

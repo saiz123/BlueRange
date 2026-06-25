@@ -1,0 +1,52 @@
+{{template "base" .}}
+{{define "title"}}Dashboard — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>My Dashboard</h1>
+</div>
+
+<div class="dash-grid">
+  <div class="stat-card">
+    <div class="stat-num">{{.Completed}}<span class="stat-denom">/{{.Total}}</span></div>
+    <div class="stat-label">Labs Completed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">{{.TotalScore}}</div>
+    <div class="stat-label">Total XP</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num {{scoreClass .Readiness 100}}">{{.Readiness}}%</div>
+    <div class="stat-label">L1 Interview Readiness</div>
+  </div>
+</div>
+
+<div class="section-header">
+  <h2>Skill Progress</h2>
+  <p class="section-sub">Mapped to CompTIA Security+ domains and SOC L1 interview criteria.</p>
+</div>
+<div class="skills-grid">
+  {{range .Skills}}
+  <div class="skill-row">
+    <span class="skill-name">{{.Name}}</span>
+    <div class="skill-bar-wrap">
+      <div class="skill-bar" style="width:{{pct .Score .MaxScore}}%"></div>
+    </div>
+    <span class="skill-pct">{{.Score}}</span>
+  </div>
+  {{end}}
+</div>
+
+<div class="readiness-box">
+  <h3>L1 Interview Readiness</h3>
+  <p>Complete all labs to prove competency across every hiring rubric. The readiness gauge tracks labs completed.</p>
+  <div class="readiness-bar-wrap">
+    <div class="readiness-bar" style="width:{{.Readiness}}%"></div>
+  </div>
+  <p class="readiness-pct">{{.Readiness}}% complete</p>
+  {{if lt .Readiness 100}}
+  <a href="/queue" class="btn btn-primary">Go to Alert Queue</a>
+  {{else}}
+  <p class="readiness-done">&#127881; You've completed all labs. You're interview-ready!</p>
+  {{end}}
+</div>
+{{end}}

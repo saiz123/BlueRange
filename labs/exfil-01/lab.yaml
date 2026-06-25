@@ -1,0 +1,42 @@
+id: exfil-01
+title: "Data Exfiltration via DNS Tunneling"
+difficulty: realistic
+category: data-exfil
+tags: [exfiltration, dns, tunneling, c2, data-theft]
+mitre:
+  - id: T1071.004
+    name: "Application Layer Protocol: DNS"
+  - id: T1048
+    name: "Exfiltration Over Alternative Protocol"
+
+alert:
+  severity: critical
+  source: dns
+  rule: "High-Entropy DNS Subdomains — Possible DNS Tunneling"
+  triggered_at: "2024-06-12T04:22:00Z"
+  src_ip: "10.0.1.92"
+  recipient: ""
+
+scenario: >
+  The DNS monitoring system detected an unusually high volume of DNS queries from
+  WS-DEV-09 (10.0.1.92) to subdomains of dl.bad-payload.ru with very long,
+  high-entropy subdomain labels. DNS tunneling uses encoded data in subdomain labels
+  to exfiltrate data outside the network. Analyze the DNS logs to confirm tunneling
+  and estimate what may have been exfiltrated.
+
+rationale_keywords:
+  - "DNS tunneling"
+  - "high entropy"
+  - "exfiltration"
+  - "subdomain"
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre: [T1071.004]
+  score_breakdown:
+    correct_verdict:   40
+    required_findings: 30
+    correct_mitre:     20
+    writeup_quality:   10
+  passing_score: 70

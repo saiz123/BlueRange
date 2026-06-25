@@ -1,0 +1,35 @@
+Received: from mail.corp-mail.biz (91.108.4.201) by mx.corp.local (10.0.0.5) with SMTP; Tue, 02 Apr 2024 14:30:47 +0000
+Authentication-Results: mx.corp.local;
+    spf=pass smtp.mailfrom=ceo@corp-mail.biz;
+    dkim=pass header.d=corp-mail.biz;
+    dmarc=fail action=none header.from=corp.local
+From: David Miller - CEO <ceo@corp.local>
+Reply-To: david.miller.ceo@corp-mail.biz
+To: finance@corp.local
+Subject: Confidential - Urgent Wire Transfer Required
+Date: Tue, 02 Apr 2024 14:30:00 +0000
+Message-ID: <20240402143000.9876@corp-mail.biz>
+X-Originating-IP: 91.108.4.201
+
+Hi Sarah,
+
+I need you to process an urgent and confidential wire transfer today. We are closing
+a strategic acquisition and the NDA prevents me from discussing details via normal
+channels.
+
+Please wire $47,500 USD to the following account:
+
+  Bank: First National Bank of Commerce
+  Account Name: Meridian Consulting LLC
+  Account Number: 4892-7731-0022
+  Routing Number: 071000013
+  Reference: STRATEGIC-Q2-2024
+
+This is time-sensitive — the funds must arrive by 17:00 EST today. Please process
+immediately and confirm by replying to this email.
+
+Do NOT discuss this with anyone else in the office until the deal closes.
+
+David Miller
+Chief Executive Officer
+Corp Inc.

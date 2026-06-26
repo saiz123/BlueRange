@@ -1,0 +1,80 @@
+{{template "base" .}}
+{{define "title"}}Shift Result — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div class="inv-breadcrumb"><a href="/shift">← Back to Shift Lobby</a></div>
+  <h1>Shift Complete</h1>
+  <p class="page-sub">{{.Shift.DurationMin}}-minute SOC shift &mdash; {{.Shift.StartedAt.Format "Jan 2, 2006 15:04 UTC"}}</p>
+</div>
+
+<!-- Summary stats -->
+<div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin-bottom:32px">
+  <div class="stat-card">
+    <div class="stat-num {{scoreClass .Shift.Score 500}}">{{.Shift.Score}}</div>
+    <div class="stat-label">Shift Score</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num {{scoreClass .SLARate 100}}">{{.SLARate}}%</div>
+    <div class="stat-label">SLA Compliance</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">{{.Summary.AlertsTriaged}}</div>
+    <div class="stat-label">Alerts Triaged</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num {{if gt .Summary.SLABreaches 0}}score-low{{else}}score-high{{end}}">{{.Summary.SLABreaches}}</div>
+    <div class="stat-label">SLA Breaches</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">{{.Duration}}</div>
+    <div class="stat-label">Minutes Worked</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">{{.Summary.AvgMinutes}}</div>
+    <div class="stat-label">Avg Min/Alert</div>
+  </div>
+</div>
+
+<!-- Alert breakdown -->
+<div class="section-header">
+  <h2>Alert Breakdown</h2>
+</div>
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Alert</th><th>Severity</th><th>SLA</th><th>Score</th><th>Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .Alerts}}
+    <tr>
+      <td>
+        {{if .Lab}}
+        <div class="alert-rule">{{.Lab.Alert.Rule}}</div>
+        <div class="alert-source" style="font-size:11px;color:var(--text-mute)">{{.Lab.Category}}</div>
+        {{end}}
+      </td>
+      <td>{{if .Lab}}<span class="sev-badge {{sevClass .Lab.Alert.Severity}}">{{upper .Lab.Alert.Severity}}</span>{{end}}</td>
+      <td>
+        {{if .SLAMet}}<span style="color:var(--green)">&#10003; Met</span>
+        {{else}}<span style="color:var(--red)">&#10007; Breached</span>{{end}}
+      </td>
+      <td class="mono">{{if .Score}}{{derefInt .Score}}/100{{else}}<span style="color:var(--text-dim)">—</span>{{end}}</td>
+      <td>
+        {{if .CompletedAt}}
+          <a href="/result/{{if .Lab}}{{.Lab.ID}}{{end}}" class="btn btn-sm btn-secondary">Review</a>
+        {{else}}
+          <span style="color:var(--text-mute);font-size:12px">Not attempted</span>
+        {{end}}
+      </td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+
+<div style="margin-top:24px;display:flex;gap:12px">
+  <a href="/shift" class="btn btn-primary">Start New Shift</a>
+  <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+  <a href="/analytics" class="btn btn-ghost">View Analytics</a>
+</div>
+{{end}}

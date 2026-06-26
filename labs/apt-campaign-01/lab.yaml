@@ -1,0 +1,75 @@
+id: apt-campaign-01
+title: "APT Kill Chain: Spearphish to Data Exfiltration"
+difficulty: realistic
+category: multi-stage
+tags:
+  - apt
+  - kill-chain
+  - multi-stage
+  - spearphish
+  - c2
+  - exfil
+  - realistic
+
+mitre:
+  - id: T1566.001
+    name: "Phishing: Spearphishing Attachment"
+  - id: T1059.001
+    name: PowerShell
+  - id: T1071.001
+    name: "Application Layer Protocol: Web Protocols"
+  - id: T1041
+    name: Exfiltration Over C2 Channel
+  - id: T1003.001
+    name: "OS Credential Dumping: LSASS Memory"
+  - id: T1021.001
+    name: "Remote Services: Remote Desktop Protocol"
+
+alert:
+  severity: critical
+  source: siem
+  rule: "Multi-Stage Intrusion Detected: Spearphish + C2 + Lateral + Exfil"
+  triggered_at: "2026-06-25T19:45:00Z"
+  src_ip: "10.0.1.55"
+
+scenario: |
+  SIEM correlated events across 4 systems over a 6-hour window and fired a critical
+  multi-stage intrusion alert at 19:45 UTC. Starting at 13:30 UTC, CFO assistant
+  awalker received a spearphishing email with a macro-enabled Word document. By 19:45,
+  the attacker had achieved initial access, established C2, dumped credentials, moved
+  laterally to the finance server, and was actively exfiltrating data.
+
+  You have logs from email, endpoint, network, and AD. Reconstruct the full attack
+  timeline and document the complete kill chain.
+
+rationale_keywords:
+  - spearphish
+  - macro
+  - C2
+  - LSASS
+  - lateral movement
+  - RDP
+  - exfiltration
+  - kill chain
+  - credential dump
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre:
+    - T1566.001
+    - T1059.001
+    - T1003.001
+    - T1041
+  score_breakdown:
+    correct_verdict: 35
+    required_findings: 30
+    correct_mitre: 20
+    writeup_quality: 15
+    ioc_enrichment: 0
+  passing_score: 70
+  difficulty_modifier: 1.25
+  min_writeup_words: 50
+  time_bonus:
+    threshold_minutes: 25
+    bonus_points: 10

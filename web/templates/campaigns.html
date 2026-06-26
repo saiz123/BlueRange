@@ -1,0 +1,60 @@
+{{template "base" .}}
+{{define "title"}}Campaigns — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>Multi-Stage Campaigns</h1>
+  <p class="page-sub">Follow a threat actor through a complete attack chain. Each stage unlocks only after you close the previous alert.</p>
+</div>
+
+<div class="campaign-grid">
+  {{range .Campaigns}}
+  <div class="campaign-card {{if .Run}}{{if eq .Run.Status "completed"}}camp-done{{else}}camp-active{{end}}{{end}}">
+    <div class="camp-header">
+      <div>
+        <span class="diff-badge diff-{{lower .Camp.Difficulty}}">{{.Camp.Difficulty}}</span>
+        {{if .Run}}
+          {{if eq .Run.Status "completed"}}
+            <span class="badge badge-green" style="margin-left:6px">Completed</span>
+          {{else}}
+            <span class="badge badge-amber" style="margin-left:6px">In Progress — Stage {{.Run.CurrentStage}}</span>
+          {{end}}
+        {{end}}
+      </div>
+      <span class="camp-stage-count">{{len .Camp.Stages}} stages</span>
+    </div>
+
+    <h2 class="camp-title">{{.Camp.Title}}</h2>
+    <p class="camp-desc">{{.Camp.Description}}</p>
+
+    <div class="camp-mitre">
+      <span class="mitre-label">MITRE Chain:</span>
+      <code>{{.Camp.MITRESummary}}</code>
+    </div>
+
+    <div class="camp-stages-preview">
+      {{range .Camp.Stages}}
+      <div class="camp-stage-pip {{if $.Run}}{{if le .Num $.Run.CurrentStage}}pip-active{{end}}{{end}}"
+           title="Stage {{.Num}}: {{.Title}}">
+        <span>{{.Num}}</span>
+      </div>
+      {{end}}
+    </div>
+
+    <div class="camp-actions">
+      {{if .Run}}
+        {{if eq .Run.Status "completed"}}
+          <a href="/campaigns/{{.Camp.Key}}/result" class="btn btn-ghost">View Results</a>
+          <a href="/campaigns/{{.Camp.Key}}" class="btn btn-secondary">Review</a>
+        {{else}}
+          <a href="/campaigns/{{.Camp.Key}}" class="btn btn-primary">Continue</a>
+        {{end}}
+      {{else}}
+        <form method="post" action="/campaigns/{{.Camp.Key}}/start">
+          <button type="submit" class="btn btn-primary">Start Campaign</button>
+        </form>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+{{end}}

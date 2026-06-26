@@ -14,7 +14,147 @@ func (db *DB) migrate() error {
 		sql string
 	}{
 		{1, sqlV1},
+		{2, `ALTER TABLE investigations ADD COLUMN best_score INTEGER;`},
+		{3, `CREATE TABLE IF NOT EXISTS user_streak (
+			user_id          INTEGER PRIMARY KEY REFERENCES users(id),
+			streak_count     INTEGER NOT NULL DEFAULT 0,
+			streak_last_date TEXT,
+			streak_shield    INTEGER NOT NULL DEFAULT 1,
+			bonus_xp         INTEGER NOT NULL DEFAULT 0
+		);`},
+		{4, `
+CREATE TABLE IF NOT EXISTS shifts (
+	id           INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id      INTEGER NOT NULL REFERENCES users(id),
+	started_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+	ended_at     DATETIME,
+	status       TEXT NOT NULL DEFAULT 'active',
+	duration_min INTEGER NOT NULL DEFAULT 20,
+	score        INTEGER DEFAULT 0,
+	summary_json TEXT
+);
+CREATE TABLE IF NOT EXISTS shift_alerts (
+	id           INTEGER PRIMARY KEY AUTOINCREMENT,
+	shift_id     INTEGER NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
+	lab_id       TEXT NOT NULL,
+	assigned_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+	due_at       DATETIME NOT NULL,
+	completed_at DATETIME,
+	sla_met      INTEGER DEFAULT 0,
+	score        INTEGER
+);
+CREATE TABLE IF NOT EXISTS investigation_notes (
+	id         INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id    INTEGER NOT NULL REFERENCES users(id),
+	lab_id     TEXT NOT NULL,
+	note_text  TEXT NOT NULL DEFAULT '',
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS enrichment_log (
+	id           INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id      INTEGER NOT NULL REFERENCES users(id),
+	lab_id       TEXT NOT NULL,
+	indicator    TEXT NOT NULL,
+	looked_up_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS invite_codes (
+	code       TEXT PRIMARY KEY,
+	created_by INTEGER REFERENCES users(id),
+	used_by    INTEGER REFERENCES users(id),
+	expires_at DATETIME,
+	used_at    DATETIME,
+	max_uses   INTEGER DEFAULT 1,
+	use_count  INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS audit_log (
+	id         INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id    INTEGER REFERENCES users(id),
+	action     TEXT NOT NULL,
+	target     TEXT,
+	ip_address TEXT,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+`},
+		{5, `
+CREATE TABLE IF NOT EXISTS live_alerts (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  template_key TEXT NOT NULL,
+  severity     TEXT NOT NULL,
+  source       TEXT NOT NULL,
+  category     TEXT NOT NULL,
+  rule_text    TEXT NOT NULL,
+  scenario     TEXT NOT NULL,
+  src_ip       TEXT NOT NULL DEFAULT '',
+  hostname     TEXT NOT NULL DEFAULT '',
+  username_val TEXT NOT NULL DEFAULT '',
+  extra_json   TEXT NOT NULL DEFAULT '{}',
+  log_json     TEXT NOT NULL DEFAULT '[]',
+  rubric_json  TEXT NOT NULL DEFAULT '{}',
+  triggered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  expires_at   DATETIME NOT NULL
+);
+CREATE TABLE IF NOT EXISTS live_investigations (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  alert_id      INTEGER NOT NULL REFERENCES live_alerts(id) ON DELETE CASCADE,
+  user_id       INTEGER NOT NULL REFERENCES users(id),
+  status        TEXT NOT NULL DEFAULT 'in_progress',
+  verdict       TEXT,
+  severity_sub  TEXT,
+  rationale     TEXT,
+  mitre_tags    TEXT DEFAULT '[]',
+  escalated     INTEGER DEFAULT 0,
+  score         INTEGER,
+  best_score    INTEGER,
+  feedback_json TEXT,
+  started_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  submitted_at  DATETIME,
+  UNIQUE(alert_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_live_alerts_expires ON live_alerts(expires_at);
+CREATE INDEX IF NOT EXISTS idx_live_alerts_sev ON live_alerts(severity, triggered_at);
+`},
+		{6, `
+CREATE TABLE IF NOT EXISTS campaign_runs (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id       INTEGER NOT NULL REFERENCES users(id),
+  campaign_key  TEXT NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'active',
+  current_stage INTEGER NOT NULL DEFAULT 1,
+  score         INTEGER DEFAULT 0,
+  started_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  completed_at  DATETIME,
+  UNIQUE(user_id, campaign_key)
+);
+CREATE TABLE IF NOT EXISTS campaign_stage_runs (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_id         INTEGER NOT NULL REFERENCES campaign_runs(id) ON DELETE CASCADE,
+  stage_num      INTEGER NOT NULL,
+  live_alert_id  INTEGER REFERENCES live_alerts(id),
+  status         TEXT NOT NULL DEFAULT 'pending',
+  score          INTEGER,
+  completed_at   DATETIME,
+  UNIQUE(run_id, stage_num)
+);
+CREATE TABLE IF NOT EXISTS hunt_sessions (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id       INTEGER NOT NULL REFERENCES users(id),
+  hunt_key      TEXT NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'active',
+  findings_json TEXT NOT NULL DEFAULT '[]',
+  score         INTEGER,
+  started_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  submitted_at  DATETIME
+);
+CREATE TABLE IF NOT EXISTS certifications (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER NOT NULL REFERENCES users(id),
+  cert_key   TEXT NOT NULL,
+  earned_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, cert_key)
+);
+`},
 	}
+
 	for _, m := range migrations {
 		if version >= m.v {
 			continue

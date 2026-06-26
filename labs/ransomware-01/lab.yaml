@@ -1,0 +1,59 @@
+id: ransomware-01
+title: Ransomware Deployment Detected
+difficulty: core
+category: malware
+tags:
+  - ransomware
+  - encryption
+  - lateral-movement
+  - sysmon
+
+mitre:
+  - id: T1486
+    name: Data Encrypted for Impact
+  - id: T1490
+    name: Inhibit System Recovery
+  - id: T1021.002
+    name: SMB/Windows Admin Shares
+  - id: T1059.001
+    name: PowerShell
+
+alert:
+  severity: critical
+  source: sysmon
+  rule: Mass File Encryption + Shadow Copy Deletion Detected
+  triggered_at: "2026-06-25T03:14:27Z"
+  src_ip: "10.0.1.88"
+
+scenario: |
+  At 03:14 UTC an endpoint detection rule fired on WORKSTATION-04 (10.0.1.88). Sysmon
+  captured a process spawning vssadmin.exe to delete all volume shadow copies, followed
+  by rapid file-rename events on the C:\Users share. Within 4 minutes the same activity
+  spread to FILE-SERVER-01 via SMB. A PowerShell script was observed downloading a
+  payload from an internal share before execution.
+
+  Your job: determine whether this is a true ransomware event, identify the infection
+  vector, and decide whether to escalate for immediate IR engagement.
+
+rationale_keywords:
+  - shadow copies
+  - vssadmin
+  - encryption
+  - ransomware
+  - lateral
+  - SMB
+  - powershell
+  - T1486
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre:
+    - T1486
+    - T1490
+  score_breakdown:
+    correct_verdict: 40
+    required_findings: 30
+    correct_mitre: 20
+    writeup_quality: 10
+  passing_score: 70

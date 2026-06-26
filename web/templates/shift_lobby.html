@@ -1,0 +1,89 @@
+{{template "base" .}}
+{{define "title"}}SOC Shift — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>SOC Shift Simulator</h1>
+  <p class="page-sub">Work a timed SOC shift. Alerts arrive with SLA deadlines — triage them before time runs out.</p>
+</div>
+
+{{if .ActiveShiftID}}
+<div class="hint-bar" style="margin-bottom:24px">
+  &#9679; You have an <strong>active shift</strong> in progress.
+  <a href="/shift/{{.ActiveShiftID}}" class="hint-link">Return to shift &rarr;</a>
+</div>
+{{end}}
+
+<div class="shift-lobby-grid">
+  <!-- Start new shift -->
+  <div class="shift-card">
+    <h2>&#128197; Start New Shift</h2>
+    <p style="color:var(--text-mute);margin-bottom:20px">Select your shift length. Longer shifts have more alerts and higher potential scores.</p>
+    <form method="POST" action="/shift/start" class="shift-form">
+      <div class="shift-duration-opts" x-data="{dur:20}">
+        <label class="mode-opt" :class="dur===20&&'mode-opt-selected'">
+          <input type="radio" name="duration" value="20" @change="dur=20" checked>
+          <span>
+            <strong>20 min</strong>
+            <small>3–4 alerts &middot; Intro friendly</small>
+          </span>
+        </label>
+        <label class="mode-opt" :class="dur===40&&'mode-opt-selected'">
+          <input type="radio" name="duration" value="40" @change="dur=40">
+          <span>
+            <strong>40 min</strong>
+            <small>5–6 alerts &middot; Core difficulty</small>
+          </span>
+        </label>
+        <label class="mode-opt" :class="dur===60&&'mode-opt-selected'">
+          <input type="radio" name="duration" value="60" @change="dur=60">
+          <span>
+            <strong>60 min</strong>
+            <small>7–8 alerts &middot; Full simulation</small>
+          </span>
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg" style="margin-top:20px">&#9654; Start Shift</button>
+    </form>
+  </div>
+
+  <!-- SLA reference -->
+  <div class="shift-card">
+    <h2>&#8987; SLA Reference</h2>
+    <p style="color:var(--text-mute);margin-bottom:16px">Time-to-triage targets by severity. SLA-met alerts earn a 25% score bonus.</p>
+    <table style="width:100%;font-size:13px">
+      <thead><tr><th style="text-align:left;padding:6px 0;color:var(--text-mute)">Severity</th><th style="text-align:right;color:var(--text-mute)">SLA Window</th><th style="text-align:right;color:var(--text-mute)">Multiplier</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sev-badge sev-critical">CRITICAL</span></td><td style="text-align:right;color:var(--red)">10 min</td><td style="text-align:right;color:var(--green)">1.25×</td></tr>
+        <tr><td><span class="sev-badge sev-high">HIGH</span></td><td style="text-align:right;color:var(--amber)">15 min</td><td style="text-align:right;color:var(--green)">1.25×</td></tr>
+        <tr><td><span class="sev-badge sev-medium">MEDIUM</span></td><td style="text-align:right">25 min</td><td style="text-align:right;color:var(--green)">1.25×</td></tr>
+        <tr><td><span class="sev-badge sev-low">LOW</span></td><td style="text-align:right;color:var(--text-mute)">45 min</td><td style="text-align:right;color:var(--green)">1.25×</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--text-dim);margin-top:12px">SLA breach = 0.75× multiplier on that alert's score.</p>
+  </div>
+</div>
+
+{{if .RecentShifts}}
+<div class="section-header" style="margin-top:32px">
+  <h2>Recent Shifts</h2>
+</div>
+<table class="admin-table">
+  <thead><tr><th>Date</th><th>Duration</th><th>Status</th><th>Score</th><th></th></tr></thead>
+  <tbody>
+    {{range .RecentShifts}}
+    <tr>
+      <td class="mono" style="color:var(--text-mute)">{{.StartedAt.Format "Jan 2, 15:04"}}</td>
+      <td>{{.DurationMin}} min</td>
+      <td>
+        {{if eq .Status "completed"}}<span class="status-done">&#10003; Completed</span>
+        {{else if eq .Status "active"}}<span class="status-wip">&#9679; Active</span>
+        {{else}}<span class="status-open">{{.Status}}</span>{{end}}
+      </td>
+      <td class="mono {{scoreClass .Score 400}}">{{.Score}}</td>
+      <td><a href="/shift/{{.ID}}/result" class="btn btn-sm btn-secondary">View</a></td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+{{end}}
+{{end}}

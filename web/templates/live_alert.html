@@ -1,0 +1,138 @@
+{{template "base" .}}
+{{define "title"}}Investigate Live Alert — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div class="inv-breadcrumb"><a href="/queue">&#8592; Alert Queue</a></div>
+  <div class="inv-title-row" style="margin-top:8px">
+    <span class="sev-badge {{sevClass .Alert.Severity}}">{{upper .Alert.Severity}}</span>
+    <h1 style="font-size:17px;line-height:1.4">{{.Alert.RuleText}}</h1>
+    <span class="live-dot" style="margin-left:4px"></span>
+  </div>
+  <div style="margin-top:8px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--text-mute)">
+    <span>Source: <strong style="color:var(--text)">{{.Alert.Source}}</strong></span>
+    <span>Host: <strong style="color:var(--text)">{{.Alert.Hostname}}</strong></span>
+    <span>Src IP: <strong class="mono" style="color:var(--text)">{{.Alert.SrcIP}}</strong></span>
+    <span>Category: <strong style="color:var(--text)">{{.Alert.Category}}</strong></span>
+    <span>Triggered: <strong style="color:var(--text)">{{.Alert.TriggeredAt.Format "Jan 2, 2006 15:04 UTC"}}</strong></span>
+  </div>
+</div>
+
+<!-- Scenario -->
+<div class="inv-section">
+  <h3>Scenario</h3>
+  <p style="color:var(--text-mute);line-height:1.7">{{.Alert.Scenario}}</p>
+</div>
+
+<!-- Event Logs -->
+<div class="inv-section">
+  <h3>Event Logs <span style="color:var(--text-dim);font-size:12px;font-weight:400">({{len .Alert.Logs}} entries)</span></h3>
+  <div class="log-results" style="max-height:380px">
+  {{range .Alert.Logs}}
+  <div class="log-row log-{{.Level}}">
+    <span class="log-ts">{{.Timestamp}}</span>
+    <span class="log-src">{{upper .Level}}</span>
+    <span class="log-host">[{{.Source}}]</span>
+    <span class="log-msg">{{.Message}}</span>
+  </div>
+  {{end}}
+  </div>
+</div>
+
+<!-- Investigation Form -->
+<div class="inv-section"
+  x-data='{
+    verdict: {{js .Verdict}},
+    severity: {{js .Severity}},
+    rationale: {{js .Rationale}},
+    mitre: {{mitreTags .MITRETags}},
+    escalate: {{if .Escalated}}true{{else}}false{{end}}
+  }'>
+
+  <div class="verdict-section">
+    <h2>Your Analysis</h2>
+    <form method="POST" action="/alert/{{.Alert.ID}}/submit"
+          hx-post="/alert/{{.Alert.ID}}/draft" hx-trigger="every 30s" hx-swap="none">
+
+      <!-- Verdict -->
+      <div class="verdict-form">
+        <div class="form-group">
+          <label class="form-label">Verdict <span class="required">*</span></label>
+          <div class="radio-group">
+            <label class="radio-opt">
+              <input type="radio" name="verdict" value="true_positive" x-model="verdict">
+              <span>True Positive</span>
+            </label>
+            <label class="radio-opt">
+              <input type="radio" name="verdict" value="false_positive" x-model="verdict">
+              <span>False Positive</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Severity Assessment -->
+        <div class="form-group">
+          <label class="form-label">Your Severity Assessment</label>
+          <select name="severity" x-model="severity"
+            style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-size:14px;font-family:inherit;width:220px">
+            <option value="">— select —</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+            <option value="info">Info</option>
+          </select>
+        </div>
+
+        <!-- MITRE ATT&CK -->
+        <div class="form-group">
+          <label class="form-label">MITRE ATT&CK Techniques</label>
+          <div class="mitre-dropdown" style="position:static;max-height:200px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:4px">
+          {{range .MITREAll}}
+            <label class="mitre-opt">
+              <input type="checkbox" name="mitre" value="{{.ID}}"
+                :checked="mitre.includes('{{.ID}}')"
+                @change="$event.target.checked ? mitre.push('{{.ID}}') : mitre.splice(mitre.indexOf('{{.ID}}'),1)">
+              <span><span style="color:var(--purple)">{{.ID}}</span> — {{.Name}}</span>
+            </label>
+          {{end}}
+          </div>
+        </div>
+
+        <!-- Rationale -->
+        <div class="form-group">
+          <label class="form-label">Analysis & Rationale <span class="required">*</span></label>
+          <textarea name="rationale" rows="6" x-model="rationale"
+            style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-size:14px;font-family:inherit;resize:vertical;width:100%"
+            placeholder="Describe your findings: what evidence did you observe, why is this a true or false positive, what MITRE techniques apply, and what action you recommend..."></textarea>
+          <span class="form-hint" x-text="'Words: ' + rationale.split(' ').filter(w=>w).length"></span>
+        </div>
+
+        <!-- Escalation -->
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+            <input type="hidden" name="escalated" value="false">
+            <input type="checkbox" name="escalated" value="true" x-model="escalate">
+            <span style="font-size:13px">Escalate to Tier 2 / Incident Response</span>
+          </label>
+        </div>
+
+        <!-- Submit checklist strip -->
+        <div class="submit-checklist" style="margin-bottom:12px">
+          <span :class="verdict ? 'check-done' : 'check-pending'">&#10003; Verdict</span>
+          <span :class="mitre.length>0 ? 'check-done' : 'check-pending'">&#10003; MITRE</span>
+          <span :class="rationale.split(' ').filter(w=>w).length >= 15 ? 'check-done' : 'check-pending'">&#10003; Rationale (15+ words)</span>
+        </div>
+
+        <div class="verdict-actions">
+          <button type="submit" class="btn btn-primary btn-lg"
+            :disabled="!verdict || !rationale"
+            :style="!verdict || !rationale ? 'opacity:0.5;cursor:not-allowed' : ''">
+            Submit Analysis
+          </button>
+          <a href="/queue" class="btn btn-ghost">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{{end}}

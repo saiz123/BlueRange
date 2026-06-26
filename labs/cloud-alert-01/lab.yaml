@@ -1,0 +1,60 @@
+id: cloud-alert-01
+title: Suspicious AWS IAM Privilege Escalation
+difficulty: realistic
+category: web-attack
+tags:
+  - aws
+  - cloud
+  - iam
+  - privilege-escalation
+  - cloudtrail
+
+mitre:
+  - id: T1078.004
+    name: Valid Accounts — Cloud Accounts
+  - id: T1548
+    name: Abuse Elevation Control Mechanism
+  - id: T1580
+    name: Cloud Infrastructure Discovery
+  - id: T1136.003
+    name: Create Account — Cloud Account
+
+alert:
+  severity: high
+  source: cloudtrail
+  rule: IAM Role Assumption from Unusual Geography + Privilege Escalation Chain
+  triggered_at: "2026-06-25T08:47:33Z"
+  src_ip: "185.233.102.47"
+
+scenario: |
+  AWS GuardDuty and CloudTrail forwarded a high-severity alert at 08:47 UTC. An IAM role
+  (dev-deploy-role) was assumed by access keys belonging to developer jpark (James Park)
+  from an IP in Bucharest, Romania (185.233.102.47). James Park is based in Austin, TX and
+  has no travel scheduled. Within 3 minutes of assuming the role, the session enumerated
+  all IAM users, created a new IAM user (backup-svc-acct), attached AdministratorAccess
+  to the new user, and generated access keys for it.
+
+  Determine whether this is an account compromise and whether escalation is warranted.
+
+rationale_keywords:
+  - IAM
+  - privilege escalation
+  - Romania
+  - unusual geography
+  - new user
+  - AdministratorAccess
+  - access keys
+  - compromise
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre:
+    - T1078.004
+    - T1548
+  score_breakdown:
+    correct_verdict: 40
+    required_findings: 30
+    correct_mitre: 20
+    writeup_quality: 10
+  passing_score: 70

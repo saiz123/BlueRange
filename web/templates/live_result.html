@@ -1,0 +1,100 @@
+{{template "base" .}}
+{{define "title"}}Result — Live Alert — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div class="inv-breadcrumb"><a href="/queue">&#8592; Alert Queue</a></div>
+  <h1>Investigation Result</h1>
+  <p class="page-sub">{{.Alert.RuleText}}</p>
+  <div style="margin-top:6px;display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text-mute)">
+    <span><span class="sev-badge {{sevClass .Alert.Severity}}">{{upper .Alert.Severity}}</span></span>
+    <span>Source: <strong>{{.Alert.Source}}</strong></span>
+    <span>Host: <strong>{{.Alert.Hostname}}</strong></span>
+  </div>
+</div>
+
+<!-- Score card -->
+<div class="result-hero {{scoreClass .Result.Score .Result.MaxScore}}" style="margin-bottom:24px">
+  <div class="result-score">{{.Result.Score}}<span class="result-max">/{{.Result.MaxScore}}</span></div>
+  <div style="margin-top:8px">
+    {{if .Result.Passed}}
+    <span class="verdict-pass">&#10003; PASSED</span>
+    {{else}}
+    <span class="verdict-fail">&#10007; NEEDS REVIEW</span>
+    {{end}}
+  </div>
+</div>
+
+<!-- Feedback breakdown -->
+<div class="feedback-section">
+  <h2>Feedback Breakdown</h2>
+  <div class="feedback-list">
+  {{range .Result.Feedback}}
+  <div class="feedback-item {{if eq .Max 0}}fb-neutral{{else if .Correct}}fb-pass{{else}}fb-fail{{end}}">
+    <div class="fb-header">
+      <span class="fb-icon">{{if eq .Max 0}}&#8212;{{else if .Correct}}&#10003;{{else}}&#10007;{{end}}</span>
+      <span class="fb-category">{{.Label}}</span>
+      <span class="fb-score">{{.Points}}/{{.Max}}</span>
+    </div>
+  </div>
+  {{end}}
+  </div>
+</div>
+
+<!-- Correct answers -->
+<div class="submission-summary">
+  <h2>Correct Analysis</h2>
+  <div class="summary-grid">
+    <div class="summary-item">
+      <span class="summary-key">Expected Verdict</span>
+      <span class="summary-val">
+        <span class="category-tag">{{.Alert.Rubric.ExpectedVerdict}}</span>
+        {{if .Result.VerdictCorrect}}<span style="color:var(--green);margin-left:6px">&#10003; You got this right</span>{{else}}<span style="color:var(--red);margin-left:6px">&#10007; You answered incorrectly</span>{{end}}
+      </span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-key">Expected Action</span>
+      <span class="summary-val">
+        <span class="category-tag">{{.Alert.Rubric.ExpectedEscalation}}</span>
+        {{if .Result.EscalationCorrect}}<span style="color:var(--green);margin-left:6px">&#10003; Correct</span>{{else}}<span style="color:var(--red);margin-left:6px">&#10007; Incorrect</span>{{end}}
+      </span>
+    </div>
+  </div>
+  {{if .Alert.Rubric.RequiredMITRE}}
+  <div style="margin-top:12px">
+    <span class="summary-key">Required MITRE Techniques</span>
+    <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">
+    {{range .Alert.Rubric.RequiredMITRE}}
+      <span class="mitre-tag">{{.}}</span>
+    {{end}}
+    </div>
+  </div>
+  {{if .Result.MITREMissed}}
+  <div style="margin-top:8px">
+    <span class="summary-key" style="color:var(--red)">Missed Techniques</span>
+    <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">
+    {{range .Result.MITREMissed}}
+      <span class="mitre-tag" style="border-color:var(--red);color:var(--red)">{{.}}</span>
+    {{end}}
+    </div>
+  </div>
+  {{end}}
+  {{end}}
+  {{if .Alert.Rubric.Keywords}}
+  <div style="margin-top:12px">
+    <span class="summary-key">Key Concepts to Include in Rationale</span>
+    <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">
+    {{range .Alert.Rubric.Keywords}}
+      <span class="category-tag">{{.}}</span>
+    {{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+
+<div class="result-actions" style="margin-top:24px">
+  <a href="/queue" class="btn btn-primary">Back to Queue</a>
+  <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+  <a href="/analytics" class="btn btn-ghost">View Analytics</a>
+  <a href="/report/alert/{{.Alert.ID}}" class="btn btn-ghost">📄 Export Report</a>
+</div>
+{{end}}

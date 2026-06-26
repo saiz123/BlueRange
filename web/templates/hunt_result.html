@@ -1,0 +1,51 @@
+{{template "base" .}}
+{{define "title"}}Hunt Result — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <a href="/hunt" class="btn-back">← Threat Hunts</a>
+  <h1 style="margin-top:8px">{{.Hunt.Title}}</h1>
+</div>
+
+<div class="result-hero" style="margin-bottom:32px">
+  <div class="score-ring {{scoreClass .Score 100}}">
+    <span class="score-num">{{.Score}}</span>
+    <span class="score-label">/ {{.MaxScore}}</span>
+  </div>
+  <div>
+    <h2 style="margin:0">{{if .Passed}}Hunt Successful{{else}}Hunt Incomplete{{end}}</h2>
+    <p style="color:var(--text-mute);margin:4px 0">{{.Hunt.Hypothesis}}</p>
+  </div>
+</div>
+
+<h2>IOC Coverage</h2>
+<div class="result-breakdown" style="margin-bottom:32px">
+  {{range .SeedResults}}
+  <div class="breakdown-row">
+    <span class="breakdown-label">
+      {{if .Found}}<span class="fb-pass">✓</span>{{else}}<span class="fb-fail">✗</span>{{end}}
+      <code>{{.Term}}</code> — {{.Description}}
+    </span>
+    <span class="breakdown-pts">{{if .Found}}+{{.Points}}{{else}}0{{end}} pts</span>
+  </div>
+  {{end}}
+</div>
+
+{{if .Findings}}
+<h2>Marked Evidence ({{len .Findings}} entries)</h2>
+<div class="log-results" style="margin-bottom:32px">
+  {{range .Findings}}
+  <div class="log-row">
+    <span class="log-ts">{{.Ts}}</span>
+    <span class="log-src">{{.Source}}</span>
+    <span class="log-host">{{.Host}}</span>
+    <span class="log-msg">{{.Message}}</span>
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+<div style="display:flex;gap:12px;justify-content:center">
+  <a href="/hunt/{{.Hunt.Key}}" class="btn btn-secondary">Re-hunt</a>
+  <a href="/certifications" class="btn btn-primary">Check Certifications</a>
+</div>
+{{end}}

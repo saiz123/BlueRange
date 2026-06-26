@@ -10,7 +10,7 @@
 {{$inv := .Inv}}
 {{$score := derefInt $inv.Score}}
 
-<div class="result-hero {{scoreClass $score 100}}">
+<div class="result-hero {{scoreClass $score 110}}">
   <div class="result-score">{{$score}}<span class="result-max">/100</span></div>
   <div class="result-verdict">
     {{if ge $score 70}}
@@ -19,19 +19,25 @@
     <span class="verdict-fail">&#10007; Needs Review</span>
     {{end}}
   </div>
+  {{if .TimeTaken}}
+  <div style="font-size:12px;color:var(--text-mute);margin-top:8px">Completed in {{.TimeTaken}} minutes</div>
+  {{end}}
+  {{if .DifficultyMod}}
+  <div style="font-size:12px;color:var(--purple);margin-top:4px">Difficulty modifier: {{.DifficultyMod}}&times;</div>
+  {{end}}
 </div>
 
 <div class="feedback-section">
   <h2>Grading Breakdown</h2>
   <div class="feedback-list">
     {{range $inv.Feedback}}
-    <div class="feedback-item {{if .Passed}}fb-pass{{else}}fb-fail{{end}}">
+    <div class="feedback-item {{if .Passed}}fb-pass{{else if eq .Max 0}}fb-neutral{{else}}fb-fail{{end}}">
       <div class="fb-header">
         <span class="fb-category">{{.Category}}</span>
         {{if gt .Max 0}}
         <span class="fb-score">{{.Points}}/{{.Max}}</span>
         {{end}}
-        <span class="fb-icon">{{if .Passed}}&#10003;{{else}}&#10007;{{end}}</span>
+        <span class="fb-icon">{{if .Passed}}&#10003;{{else if eq .Max 0}}&mdash;{{else}}&#10007;{{end}}</span>
       </div>
       <p class="fb-message">{{.Message}}</p>
     </div>
@@ -45,16 +51,26 @@
     <div class="summary-item"><span class="summary-key">Verdict</span><span class="summary-val">{{$inv.Verdict}}</span></div>
     <div class="summary-item"><span class="summary-key">Severity</span><span class="summary-val">{{$inv.Severity}}</span></div>
     <div class="summary-item"><span class="summary-key">Escalation</span><span class="summary-val">{{if $inv.Escalated}}Escalate to L2{{else}}Close{{end}}</span></div>
-    <div class="summary-item"><span class="summary-key">MITRE Tags</span><span class="summary-val">{{join $inv.Mitre ", "}}</span></div>
+    <div class="summary-item"><span class="summary-key">MITRE Tags</span><span class="summary-val mono" style="font-size:12px">{{join $inv.Mitre ", "}}</span></div>
+    {{if $inv.Score}}<div class="summary-item"><span class="summary-key">Best Score</span><span class="summary-val {{scoreClass (derefInt $inv.Score) 100}}">{{derefInt $inv.Score}}/100</span></div>{{end}}
   </div>
   <div class="summary-rationale">
     <span class="summary-key">Write-up</span>
-    <p>{{$inv.Rationale}}</p>
+    <p style="white-space:pre-wrap">{{$inv.Rationale}}</p>
   </div>
 </div>
 
 <div class="result-actions">
   <a href="/walkthrough/{{.Lab.ID}}" class="btn btn-secondary">View Walkthrough</a>
+  {{if ge $score 70}}
   <a href="/queue" class="btn btn-primary">Next Alert</a>
+  {{else}}
+  <form method="POST" action="/investigate/{{.Lab.ID}}/reset" style="display:inline">
+    <input type="hidden" name="mode" value="guided">
+    <button type="submit" class="btn btn-primary">Retry in Guided Mode</button>
+  </form>
+  {{end}}
+  <a href="/analytics" class="btn btn-ghost">View Analytics</a>
+  <a href="/report/lab/{{.Lab.ID}}" class="btn btn-ghost">📄 Export Report</a>
 </div>
 {{end}}

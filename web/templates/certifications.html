@@ -1,0 +1,39 @@
+{{template "base" .}}
+{{define "title"}}Certifications — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>Certifications</h1>
+  <p class="page-sub">Earn certifications by completing milestones. They're checked automatically when you visit this page.</p>
+</div>
+
+<div class="cert-grid">
+  {{range .Certs}}
+  <div class="cert-card {{if .Earned}}cert-earned{{else}}cert-locked{{end}}">
+    <div class="cert-icon">{{.Def.Icon}}</div>
+    <div class="cert-body">
+      <h3 class="cert-title">{{.Def.Title}}</h3>
+      <p class="cert-desc">{{.Def.Description}}</p>
+      <p class="cert-criteria">
+        <strong>Criteria:</strong> {{.Def.Criteria}}
+      </p>
+      {{if .Earned}}
+        <div class="cert-earned-at">
+          <span class="badge badge-green">Earned</span>
+          {{if not .EarnedAt.IsZero}}<span style="color:var(--text-dim);font-size:12px">{{.EarnedAt.Format "Jan 02, 2006"}}</span>{{end}}
+        </div>
+      {{else}}
+        <div class="cert-locked-msg">
+          <span style="color:var(--text-dim);font-size:12px">🔒 Not yet earned</span>
+        </div>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+
+<div class="cert-nav" style="margin-top:32px;display:flex;gap:12px">
+  <a href="/campaigns" class="btn btn-secondary">Campaigns</a>
+  <a href="/hunt" class="btn btn-secondary">Threat Hunts</a>
+  <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+</div>
+{{end}}

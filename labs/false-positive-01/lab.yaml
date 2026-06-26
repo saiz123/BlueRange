@@ -1,0 +1,50 @@
+id: false-positive-01
+title: Vulnerability Scanner — False Positive Triage
+difficulty: intro
+category: web-attack
+tags:
+  - false-positive
+  - scanner
+  - web
+  - nmap
+
+mitre:
+  - id: T1595
+    name: Active Scanning
+
+alert:
+  severity: medium
+  source: ids
+  rule: SQL Injection Attempt Detected — Multiple Payloads
+  triggered_at: "2026-06-25T09:15:00Z"
+  src_ip: "10.0.0.200"
+
+scenario: |
+  An IDS rule fired at 09:15 UTC after detecting what appears to be multiple SQL
+  injection payloads originating from internal IP 10.0.0.200 targeting the company's
+  web application at 10.0.1.5. The source IP sent 847 requests in 4 minutes with
+  user-agent "Nessus/10.4" and patterns matching common SQLi scanners.
+
+  Review the IDS and web server logs to determine if this is a real attack or an
+  authorized vulnerability scan. The security team does run weekly scans; check
+  whether this falls within the approved maintenance window (Tuesday 09:00-10:00 UTC).
+
+rationale_keywords:
+  - scanner
+  - Nessus
+  - authorized
+  - maintenance window
+  - false positive
+  - 10.0.0.200
+
+rubric:
+  expected_verdict: false_positive
+  expected_escalation: close
+  required_mitre:
+    - T1595
+  score_breakdown:
+    correct_verdict: 40
+    required_findings: 30
+    correct_mitre: 20
+    writeup_quality: 10
+  passing_score: 70

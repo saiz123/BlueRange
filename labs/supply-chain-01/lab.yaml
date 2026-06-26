@@ -1,0 +1,58 @@
+id: supply-chain-01
+title: Malicious npm Package — Supply Chain Compromise
+difficulty: core
+category: malware
+tags:
+  - supply-chain
+  - npm
+  - javascript
+  - postinstall
+
+mitre:
+  - id: T1195.001
+    name: "Supply Chain Compromise: Compromise Software Dependencies"
+  - id: T1059.007
+    name: "Command and Scripting Interpreter: JavaScript"
+  - id: T1048
+    name: Exfiltration Over Alternative Protocol
+
+alert:
+  severity: high
+  source: proxy
+  rule: Unexpected Outbound POST During npm install — Developer Workstation
+  triggered_at: "2026-06-25T14:55:03Z"
+  src_ip: "10.0.4.31"
+
+scenario: |
+  Proxy logs show WORKSTATION-DEV-09 (10.0.4.31, developer jkim) made an outbound
+  POST to https://collect.malicious-stats[.]io during an npm install at 14:55 UTC.
+  The request contained a base64 payload in the body. The package being installed was
+  "react-date-utils" v2.3.1, which has 2.4M weekly downloads on npmjs.com.
+
+  Investigation reveals the published package was recently updated. Your job is to
+  determine whether this is a legitimate telemetry call or a compromised npm package
+  exfiltrating developer credentials.
+
+rationale_keywords:
+  - postinstall
+  - base64
+  - exfiltration
+  - npm
+  - malicious
+  - credentials
+  - supply chain
+  - collect.malicious-stats
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre:
+    - T1195.001
+    - T1048
+  score_breakdown:
+    correct_verdict: 40
+    required_findings: 30
+    correct_mitre: 20
+    writeup_quality: 10
+  passing_score: 70
+  difficulty_modifier: 1.1

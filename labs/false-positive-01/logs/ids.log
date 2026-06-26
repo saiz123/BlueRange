@@ -1,0 +1,11 @@
+{"timestamp":"2026-06-25T09:14:59Z","level":"info","host":"IDS-01","source":"ids","message":"New connection from 10.0.0.200:54321 to 10.0.1.5:443"}
+{"timestamp":"2026-06-25T09:15:01Z","level":"warn","host":"IDS-01","source":"ids","message":"SQL injection pattern detected: GET /api/users?id=1' OR '1'='1 from 10.0.0.200 — User-Agent: Nessus/10.4.0"}
+{"timestamp":"2026-06-25T09:15:01Z","level":"warn","host":"IDS-01","source":"ids","message":"SQL injection pattern: GET /api/users?id=1 UNION SELECT NULL-- from 10.0.0.200 — User-Agent: Nessus/10.4.0"}
+{"timestamp":"2026-06-25T09:15:02Z","level":"warn","host":"IDS-01","source":"ids","message":"XSS pattern: GET /search?q=<script>alert(1)</script> from 10.0.0.200 — User-Agent: Nessus/10.4.0"}
+{"timestamp":"2026-06-25T09:15:04Z","level":"info","host":"IDS-01","source":"ids","message":"Directory traversal probe: GET /../../../etc/passwd from 10.0.0.200 — User-Agent: Nessus/10.4.0"}
+{"timestamp":"2026-06-25T09:15:06Z","level":"info","host":"IDS-01","source":"ids","message":"Rate: 10.0.0.200 sending 14 req/sec to 10.0.1.5 — consistent scan pattern"}
+{"timestamp":"2026-06-25T09:15:10Z","level":"info","host":"WEB-01","source":"ids","message":"Web server 10.0.1.5 responding 400/404 to all probe requests — application not vulnerable"}
+{"timestamp":"2026-06-25T09:16:44Z","level":"info","host":"IDS-01","source":"ids","message":"Scan IP 10.0.0.200 belongs to asset SCAN-SERVER-01 per CMDB (internal vulnerability scanner)"}
+{"timestamp":"2026-06-25T09:17:01Z","level":"info","host":"IDS-01","source":"ids","message":"Maintenance window active: Tuesday 09:00-10:00 UTC (weekly Nessus scan window). Current time: Tuesday 09:17 UTC."}
+{"timestamp":"2026-06-25T09:17:05Z","level":"info","host":"IDS-01","source":"ids","message":"Total requests from 10.0.0.200: 847. All User-Agent: Nessus/10.4.0. No successful exploitation indicators."}
+{"timestamp":"2026-06-25T09:18:59Z","level":"info","host":"IDS-01","source":"ids","message":"Scan complete. 10.0.0.200 closed all connections. 0 successful responses to attack payloads."}

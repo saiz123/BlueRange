@@ -12,7 +12,7 @@
 
 <div class="walkthrough-body">
   {{if .Content}}
-  <pre class="wt-content">{{.Content}}</pre>
+  <div class="wt-content">{{markdownHTML .Content}}</div>
   {{else}}
   <p class="no-results">No walkthrough available for this lab yet.</p>
   {{end}}

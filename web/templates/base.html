@@ -1,24 +1,96 @@
 {{define "base"}}<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{block "title" .}}BlueRange{{end}}</title>
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="manifest" href="/static/manifest.json">
   <script src="/static/htmx.min.js" defer></script>
   <script src="/static/alpine.min.js" defer></script>
+  <script>
+    // Persist theme across reloads
+    (function() {
+      const t = localStorage.getItem('br_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+
+    document.addEventListener('alpine:init', () => {
+      Alpine.store('toast', {
+        message: '', type: 'info', visible: false,
+        show(msg, type) {
+          this.message = msg; this.type = type || 'info'; this.visible = true;
+          setTimeout(() => { this.visible = false; }, 3500);
+        }
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // URL toast param
+      const p = new URLSearchParams(location.search);
+      const msg = p.get('toast');
+      if (msg) {
+        setTimeout(() => {
+          Alpine.store('toast').show(decodeURIComponent(msg), p.get('toast_type') || 'info');
+        }, 50);
+        p.delete('toast'); p.delete('toast_type');
+        history.replaceState({}, '', location.pathname + (p.toString() ? '?' + p : ''));
+      }
+
+      // SSE for live alert notifications
+      {{if .User}}
+      startSSE();
+      {{end}}
+    });
+
+    function startSSE() {
+      if (!window.EventSource) return;
+      const seenIDs = new Set(JSON.parse(localStorage.getItem('br_seen_alerts') || '[]'));
+      let es = new EventSource('/api/sse');
+      es.addEventListener('alert', e => {
+        try {
+          const d = JSON.parse(e.data);
+          if (seenIDs.has(d.id)) return;
+          seenIDs.add(d.id);
+          localStorage.setItem('br_seen_alerts', JSON.stringify([...seenIDs].slice(-100)));
+          const label = d.severity === 'critical' ? '🔴 CRITICAL' : '🟠 HIGH';
+          setTimeout(() => {
+            Alpine.store('toast').show(label + ' — ' + d.rule.substring(0, 60), d.severity === 'critical' ? 'error' : 'warn');
+          }, 100);
+        } catch(e) {}
+      });
+      es.onerror = () => { setTimeout(startSSE, 30000); };
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('br_theme', next);
+    }
+  </script>
 </head>
 <body>
+  <div x-data x-show="$store.toast.visible" x-transition
+       :class="'toast toast-' + $store.toast.type"
+       x-text="$store.toast.message"
+       style="display:none"></div>
+
   {{if .User}}
   <nav class="nav">
     <a class="nav-brand" href="/queue">&#9632; BlueRange</a>
     <div class="nav-links">
-      <a href="/queue">Alert Queue</a>
+      <a href="/queue">Queue</a>
+      <a href="/campaigns">Campaigns</a>
+      <a href="/hunt">Hunt</a>
+      <a href="/shift">Shift</a>
       <a href="/dashboard">Dashboard</a>
-      <a href="/playbooks">Playbooks</a>
+      <a href="/certifications">Certs</a>
+      <a href="/analytics">Analytics</a>
       {{if eq .User.Role "admin"}}<a href="/admin">Admin</a>{{end}}
     </div>
     <div class="nav-user">
+      <button onclick="toggleTheme()" class="btn-icon" title="Toggle theme" style="margin-right:8px">☀</button>
       <span class="nav-username">{{.User.Username}}</span>
       <form method="POST" action="/logout" style="display:inline">
         <button type="submit" class="btn-ghost">Sign out</button>

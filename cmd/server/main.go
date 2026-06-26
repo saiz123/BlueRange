@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -12,10 +14,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bluerange/bluerange/internal/alertengine"
 	"github.com/bluerange/bluerange/internal/auth"
 	"github.com/bluerange/bluerange/internal/db"
 	"github.com/bluerange/bluerange/internal/handler"
 	"github.com/bluerange/bluerange/internal/lab"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
 )
 
 func main() {
@@ -72,6 +77,13 @@ func main() {
 		log.Error("load templates", "err", err)
 		os.Exit(1)
 	}
+
+	// Start dynamic alert engine
+	alertCtx, alertCancel := context.WithCancel(context.Background())
+	defer alertCancel()
+	engine := alertengine.New(database, log)
+	engine.GenerateInitial(15)
+	go engine.Start(alertCtx)
 
 	h := handler.New(database, registry, tmpl, cfg.staticDir, log)
 	srv := &http.Server{
@@ -198,13 +210,16 @@ func ingestLogs(database *db.DB, l *lab.Lab, log *slog.Logger) error {
 	return nil
 }
 
-func loadTemplates(tmplDir string) (*template.Template, error) {
+func loadTemplates(tmplDir string) (map[string]*template.Template, error) {
 	funcMap := template.FuncMap{
 		"upper": strings.ToUpper,
 		"lower": strings.ToLower,
 		"join":  strings.Join,
 		"add":   func(a, b int) int { return a + b },
 		"mitreTags": func(tags []string) template.JS {
+			if len(tags) == 0 {
+				return "[]"
+			}
 			b, _ := json.Marshal(tags)
 			return template.JS(b)
 		},
@@ -215,7 +230,7 @@ func loadTemplates(tmplDir string) (*template.Template, error) {
 			return *p
 		},
 		"ge": func(a, b int) bool { return a >= b },
-		"pct":   func(score, max int) int {
+		"pct": func(score, max int) int {
 			if max == 0 {
 				return 0
 			}
@@ -259,14 +274,62 @@ func loadTemplates(tmplDir string) (*template.Template, error) {
 			}
 			return "sev-info"
 		},
+		"sub": func(a, b int) int { return a - b },
+		"deref": func(p *string) string {
+			if p == nil {
+				return ""
+			}
+			return *p
+		},
+		"mul": func(a, b int) int { return a * b },
+		"js": func(v any) template.JS {
+			// For strings: return without surrounding quotes (bare JS value)
+			// For other types (slices, maps): return JSON representation
+			if s, ok := v.(string); ok {
+				b, _ := json.Marshal(s)
+				if len(b) >= 2 {
+					return template.JS(b[1 : len(b)-1])
+				}
+				return template.JS("")
+			}
+			b, _ := json.Marshal(v)
+			if b == nil {
+				return template.JS("null")
+			}
+			return template.JS(b)
+		},
+		"markdownHTML": func(src string) template.HTML {
+			if src == "" {
+				return ""
+			}
+			var buf bytes.Buffer
+			md := goldmark.New(goldmark.WithExtensions(extension.GFM))
+			if err := md.Convert([]byte(src), &buf); err != nil {
+				return template.HTML(template.HTMLEscapeString(src))
+			}
+			return template.HTML(buf.String())
+		},
 	}
 
-	pattern := filepath.Join(tmplDir, "*.html")
-	tmpl, err := template.New("").Funcs(funcMap).ParseGlob(pattern)
+	basePath := filepath.Join(tmplDir, "base.html")
+	entries, err := os.ReadDir(tmplDir)
 	if err != nil {
-		return nil, fmt.Errorf("parse templates %s: %w", pattern, err)
+		return nil, fmt.Errorf("read template dir %s: %w", tmplDir, err)
 	}
-	return tmpl, nil
+
+	tmpls := make(map[string]*template.Template)
+	for _, e := range entries {
+		name := e.Name()
+		if e.IsDir() || filepath.Ext(name) != ".html" || name == "base.html" {
+			continue
+		}
+		t, err := template.New("").Funcs(funcMap).ParseFiles(basePath, filepath.Join(tmplDir, name))
+		if err != nil {
+			return nil, fmt.Errorf("parse template %s: %w", name, err)
+		}
+		tmpls[name] = t
+	}
+	return tmpls, nil
 }
 
 func getenv(key, fallback string) string {

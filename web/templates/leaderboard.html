@@ -1,0 +1,39 @@
+{{template "base" .}}
+{{define "title"}}Leaderboard — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>Leaderboard</h1>
+  <p class="page-sub">Top analysts ranked by total investigation score.</p>
+</div>
+
+{{if .Board}}
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Analyst</th>
+      <th>Level</th>
+      <th>Labs Done</th>
+      <th>Total Score</th>
+      <th>Latest Badge</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .Board}}
+    <tr {{if eq .Username $.CurrentUser}}class="lb-self"{{end}}>
+      <td class="mono" style="width:40px;color:var(--text-mute)">{{.Rank}}</td>
+      <td>
+        {{if eq .Username $.CurrentUser}}<strong>{{.Username}}</strong>{{else}}{{.Username}}{{end}}
+      </td>
+      <td><span class="lv-pill">Lvl {{.Level}}</span> <span style="color:var(--text-mute);font-size:12px">{{.Title}}</span></td>
+      <td style="color:var(--text-mute)">{{.Completed}}</td>
+      <td class="mono {{scoreClass .Score 1600}}">{{.Score}}</td>
+      <td style="color:var(--text-mute);font-size:12px">{{if .TopBadge}}{{.TopBadge}}{{else}}—{{end}}</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+{{else}}
+<p class="no-results">No analysts on the board yet. Complete a lab to appear here.</p>
+{{end}}
+{{end}}

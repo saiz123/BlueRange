@@ -1,0 +1,60 @@
+id: living-off-land-01
+title: LOLBins — Certutil and MSHTA Payload Delivery
+difficulty: core
+category: malware
+tags:
+  - lolbins
+  - certutil
+  - mshta
+  - living-off-the-land
+  - fileless
+
+mitre:
+  - id: T1218.005
+    name: "System Binary Proxy Execution: Mshta"
+  - id: T1140
+    name: Deobfuscate/Decode Files or Information
+  - id: T1059.003
+    name: "Command and Scripting Interpreter: Windows Command Shell"
+  - id: T1105
+    name: Ingress Tool Transfer
+
+alert:
+  severity: high
+  source: sysmon
+  rule: Certutil Downloading Remote File + MSHTA Executing Remote Script
+  triggered_at: "2026-06-25T16:22:44Z"
+  src_ip: "10.0.1.42"
+
+scenario: |
+  Sysmon on WORKSTATION-05 (10.0.1.42) fired at 16:22 UTC when certutil.exe was
+  observed downloading a file from an external URL, followed immediately by mshta.exe
+  executing a remote HTA script. Both are Living-Off-the-Land binaries (LOLBins) —
+  legitimate Windows tools being abused for payload delivery.
+
+  The user on this workstation (lperez) clicked a link in an internal chat message
+  claiming to be a meeting invite. Investigate the execution chain and assess scope.
+
+rationale_keywords:
+  - certutil
+  - mshta
+  - LOLBins
+  - download
+  - HTA
+  - fileless
+  - decode
+  - payload
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre:
+    - T1218.005
+    - T1140
+  score_breakdown:
+    correct_verdict: 40
+    required_findings: 30
+    correct_mitre: 20
+    writeup_quality: 10
+  passing_score: 70
+  difficulty_modifier: 1.15

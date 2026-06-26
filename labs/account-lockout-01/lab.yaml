@@ -1,0 +1,52 @@
+id: account-lockout-01
+title: Account Lockout — Targeted Brute Force or Fat Finger?
+difficulty: intro
+category: brute-force
+tags:
+  - account-lockout
+  - brute-force
+  - active-directory
+  - intro
+
+mitre:
+  - id: T1110.001
+    name: "Brute Force: Password Guessing"
+  - id: T1078
+    name: Valid Accounts
+
+alert:
+  severity: low
+  source: windows-security
+  rule: Account Lockout Threshold Exceeded — HR\mthompson
+  triggered_at: "2026-06-25T08:03:12Z"
+  src_ip: "10.0.3.22"
+
+scenario: |
+  At 08:03 UTC, Active Directory triggered a lockout alert for user HR\mthompson
+  (Margaret Thompson, Payroll Specialist). Her account was locked after 5 failed
+  logon attempts in 2 minutes, all originating from workstation DESK-HR-07 (10.0.3.22).
+  Margaret is currently in the office and reported she was trying to log in but kept
+  getting her password wrong after returning from vacation.
+
+  Determine: is this a brute force attempt by an attacker, or a legitimate user
+  struggling with their password?
+
+rationale_keywords:
+  - vacation
+  - user confirmed
+  - fat finger
+  - single workstation
+  - legitimate
+  - office
+
+rubric:
+  expected_verdict: false_positive
+  expected_escalation: close
+  required_mitre:
+    - T1110.001
+  score_breakdown:
+    correct_verdict: 40
+    required_findings: 30
+    correct_mitre: 20
+    writeup_quality: 10
+  passing_score: 70

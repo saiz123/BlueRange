@@ -1,0 +1,74 @@
+{{template "base" .}}
+{{define "title"}}Active Shift — BlueRange{{end}}
+{{define "content"}}
+<div x-data="{
+  secsLeft: {{.SecsLeft}},
+  deadline: new Date('{{.Deadline}}'),
+  tick() {
+    let now = new Date();
+    this.secsLeft = Math.max(0, Math.floor((this.deadline - now) / 1000));
+    if (this.secsLeft === 0) { window.location.href = '/shift/{{.Shift.ID}}/result'; }
+  }
+}" x-init="setInterval(() => tick(), 1000)">
+
+<!-- Shift header -->
+<div class="shift-header">
+  <div>
+    <h1>&#128197; Active SOC Shift</h1>
+    <p class="page-sub">{{.Shift.DurationMin}}-minute shift &mdash; resolve alerts before SLA expires</p>
+  </div>
+  <div class="shift-timer" :class="secsLeft < 300 ? 'timer-urgent' : ''">
+    <span x-text="Math.floor(secsLeft/60).toString().padStart(2,'0')"></span>:<span x-text="(secsLeft%60).toString().padStart(2,'0')"></span>
+    <div style="font-size:11px;color:var(--text-mute);margin-top:2px">shift remaining</div>
+  </div>
+  <form method="POST" action="/shift/{{.Shift.ID}}/end" style="align-self:center">
+    <button type="submit" class="btn btn-secondary" onclick="return confirm('End shift now?')">End Shift</button>
+  </form>
+</div>
+
+<!-- Alert queue with per-alert SLA timers -->
+<div class="section-header">
+  <h2>Alert Queue</h2>
+  <p class="page-sub">{{len .Alerts}} alerts assigned &mdash; sorted by SLA urgency</p>
+</div>
+
+<div class="shift-alerts">
+  {{range .Alerts}}
+  <div class="shift-alert-card {{if .CompletedAt}}shift-alert-done{{else if lt .MinutesLeft 0}}shift-alert-breach{{else if lt .MinutesLeft 5}}shift-alert-urgent{{end}}">
+    <div class="shift-alert-left">
+      <span class="sev-badge {{sevClass .Lab.Alert.Severity}}">{{upper .Lab.Alert.Severity}}</span>
+      <div style="margin-top:6px">
+        <div class="alert-rule" style="font-size:14px;font-weight:600">{{.Lab.Alert.Rule}}</div>
+        <div class="alert-source" style="font-size:12px;color:var(--text-mute)">{{.Lab.Alert.Source}} &mdash; {{.Lab.Category}}</div>
+      </div>
+    </div>
+    <div class="shift-alert-mid">
+      <span class="diff-badge {{diffClass .Lab.Difficulty}}">{{.Lab.Difficulty}}</span>
+      {{if .CompletedAt}}
+        <div style="margin-top:6px;font-size:12px">
+          {{if .SLAMet}}<span style="color:var(--green)">&#10003; SLA met</span>{{else}}<span style="color:var(--red)">&#10007; SLA breached</span>{{end}}
+          {{if .Score}}&mdash; <strong>{{derefInt .Score}}/100</strong>{{end}}
+        </div>
+      {{else}}
+        <div class="shift-sla {{if lt .MinutesLeft 0}}sla-breached{{else if lt .MinutesLeft 5}}sla-urgent{{end}}" style="margin-top:6px">
+          {{if lt .MinutesLeft 0}}
+            <span style="color:var(--red);font-size:12px">&#9888; SLA BREACHED</span>
+          {{else}}
+            <span style="font-size:12px;color:var(--text-mute)">SLA: {{.MinutesLeft}} min left</span>
+          {{end}}
+        </div>
+      {{end}}
+    </div>
+    <div class="shift-alert-right">
+      {{if .CompletedAt}}
+        <a href="/result/{{.Lab.ID}}" class="btn btn-sm btn-secondary">Review</a>
+      {{else}}
+        <a href="/investigate/{{.Lab.ID}}" class="btn btn-sm btn-primary">Investigate</a>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+
+</div><!-- x-data -->
+{{end}}

@@ -1,0 +1,40 @@
+{{template "base" .}}
+{{define "title"}}Campaign Result — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <a href="/campaigns/{{.Campaign.Key}}" class="btn-back">← Campaign</a>
+  <h1 style="margin-top:8px">{{.Campaign.Title}}</h1>
+</div>
+
+<div class="result-hero" style="margin-bottom:32px">
+  <div class="score-ring {{scoreClass .Score 400}}">
+    <span class="score-num">{{.Score}}</span>
+    <span class="score-label">/ {{mul (len .Campaign.Stages) 100}}</span>
+  </div>
+  <div>
+    <h2 style="margin:0">Campaign {{if eq .Status "completed"}}Complete!{{else}}Result{{end}}</h2>
+    <p style="color:var(--text-mute);margin:4px 0">{{.Campaign.MITRESummary}}</p>
+    {{if .CompletedAt.Valid}}
+    <p style="color:var(--text-dim);font-size:13px">Completed {{.CompletedAt.Time.Format "Jan 02, 2006"}}</p>
+    {{end}}
+  </div>
+</div>
+
+<h2>Stage Breakdown</h2>
+<div class="result-breakdown">
+  {{range .Results}}
+  <div class="breakdown-row">
+    <span class="breakdown-label">Stage {{.Num}}: {{.Title}}</span>
+    <div class="breakdown-bar-wrap">
+      <div class="breakdown-bar" style="width:{{pct .Score 100}}%"></div>
+    </div>
+    <span class="breakdown-pts">{{.Score}} pts</span>
+  </div>
+  {{end}}
+</div>
+
+<div style="text-align:center;margin-top:32px;display:flex;gap:12px;justify-content:center">
+  <a href="/campaigns" class="btn btn-secondary">← All Campaigns</a>
+  <a href="/certifications" class="btn btn-primary">Check Certifications</a>
+</div>
+{{end}}

@@ -1,0 +1,52 @@
+{{template "base" .}}
+{{define "title"}}Invite Codes — Admin{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div class="inv-breadcrumb"><a href="/admin">← Admin Panel</a></div>
+  <h1>Invite Codes</h1>
+</div>
+
+<div class="admin-section">
+  <h2>Generate New Code</h2>
+  <form method="POST" action="/admin/invites" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+    <div class="form-group" style="margin:0">
+      <label class="form-label" style="font-size:12px">Expires in (days, 0=never)</label>
+      <input type="number" name="expiry_days" value="7" min="0" max="365" style="width:100px">
+    </div>
+    <button type="submit" class="btn btn-primary">Generate Code</button>
+  </form>
+</div>
+
+<div class="admin-section">
+  <h2>Active Codes</h2>
+  {{if .Invites}}
+  <table class="admin-table">
+    <thead><tr><th>Code</th><th>Uses</th><th>Expires</th><th>Used By</th><th></th></tr></thead>
+    <tbody>
+      {{range .Invites}}
+      <tr>
+        <td class="mono" style="letter-spacing:2px">{{.Code}}</td>
+        <td>{{.UseCount}}/{{.MaxUses}}</td>
+        <td style="color:var(--text-mute);font-size:12px">
+          {{if .ExpiresAt}}{{.ExpiresAt.Format "Jan 2, 2006"}}{{else}}Never{{end}}
+        </td>
+        <td style="color:var(--text-mute)">{{if .UsedBy}}{{deref .UsedBy}}{{else}}—{{end}}</td>
+        <td>
+          {{if not .UsedBy}}
+          <form method="POST" action="/admin/invites/{{.Code}}/revoke" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-ghost">Revoke</button>
+          </form>
+          {{end}}
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  {{else}}
+  <p class="no-results">No invite codes yet. Generate one above.</p>
+  {{end}}
+</div>
+<p style="font-size:12px;color:var(--text-mute);margin-top:8px">
+  Share the registration link: <code>{{.Now.Format ""}}/register?code=&lt;code&gt;</code>
+</p>
+{{end}}

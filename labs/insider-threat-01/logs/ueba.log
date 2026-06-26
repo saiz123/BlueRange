@@ -1,0 +1,14 @@
+{"timestamp":"2026-06-25T12:50:01Z","level":"info","host":"DESKTOP-HRA-03","source":"ueba","message":"User mwilson logged in from DESKTOP-HRA-03 (10.0.2.45). Normal login pattern."}
+{"timestamp":"2026-06-25T12:51:14Z","level":"info","host":"DESKTOP-HRA-03","source":"ueba","message":"mwilson accessed HR file: /hr/records/employees/emp_0001.docx"}
+{"timestamp":"2026-06-25T12:51:19Z","level":"info","host":"DESKTOP-HRA-03","source":"ueba","message":"mwilson accessed HR file: /hr/records/employees/emp_0002.docx"}
+{"timestamp":"2026-06-25T13:05:00Z","level":"warn","host":"DESKTOP-HRA-03","source":"ueba","message":"USB mass storage device connected: Vendor=SanDisk, Product=Ultra, Serial=4C5312A0, drive letter G:\\"}
+{"timestamp":"2026-06-25T13:05:44Z","level":"warn","host":"DESKTOP-HRA-03","source":"ueba","message":"File copy event: 84 files copied from \\\\HRSERVER\\records to G:\\ (USB device)"}
+{"timestamp":"2026-06-25T13:07:12Z","level":"warn","host":"DESKTOP-HRA-03","source":"ueba","message":"mwilson accessed 312 HR records in 2 minutes — rate 400× above personal baseline"}
+{"timestamp":"2026-06-25T13:22:40Z","level":"warn","host":"DESKTOP-HRA-03","source":"ueba","message":"File copy event: 421 files copied from \\\\HRSERVER\\payroll to G:\\ (USB device). Cumulative USB transfer: 1.2 GB"}
+{"timestamp":"2026-06-25T13:45:18Z","level":"error","host":"DESKTOP-HRA-03","source":"ueba","message":"RISK SCORE ELEVATED: mwilson peer group avg 46 records/day. Today: 1,102 records in 55 min. Risk delta: +1,840%"}
+{"timestamp":"2026-06-25T14:10:55Z","level":"warn","host":"DESKTOP-HRA-03","source":"ueba","message":"mwilson searched HR portal for: 'all employees salary band 4 5 6 export csv'"}
+{"timestamp":"2026-06-25T14:11:33Z","level":"warn","host":"DESKTOP-HRA-03","source":"ueba","message":"CSV export downloaded: salary_export_all_levels.csv (size: 2.4 MB, 1,847 employee records)"}
+{"timestamp":"2026-06-25T14:12:01Z","level":"error","host":"DESKTOP-HRA-03","source":"ueba","message":"File copy: salary_export_all_levels.csv -> G:\\salary_export_all_levels.csv (USB device)"}
+{"timestamp":"2026-06-25T14:22:10Z","level":"critical","host":"DESKTOP-HRA-03","source":"ueba","message":"ALERT FIRED: Anomalous HR record access threshold breached. User: mwilson. Records accessed: 1,847. USB transfers: 1,847 files, 3.8 GB total. Resignation on file: 2026-06-11."}
+{"timestamp":"2026-06-25T14:23:05Z","level":"info","host":"DESKTOP-HRA-03","source":"ueba","message":"USB device disconnected: SanDisk Ultra serial 4C5312A0"}
+{"timestamp":"2026-06-25T14:23:40Z","level":"info","host":"DESKTOP-HRA-03","source":"ueba","message":"mwilson logged out of DESKTOP-HRA-03"}

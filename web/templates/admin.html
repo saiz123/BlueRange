@@ -3,25 +3,46 @@
 {{define "content"}}
 <div class="page-header">
   <h1>Admin Panel</h1>
+  <p class="page-sub">Manage users, labs, invite codes, and audit logs.</p>
+</div>
+
+<!-- Quick links -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px">
+  <a href="/admin/invites" class="btn btn-secondary">&#128273; Invite Codes</a>
+  <a href="/admin/audit" class="btn btn-secondary">&#128196; Audit Log</a>
 </div>
 
 <div class="admin-section">
-  <h2>Users</h2>
+  <h2>Users ({{len .Users}})</h2>
   <table class="admin-table">
-    <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Created</th><th></th></tr></thead>
+    <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Created</th><th>Actions</th></tr></thead>
     <tbody>
     {{range .Users}}
     <tr>
-      <td>{{.ID}}</td>
-      <td>{{.Username}}</td>
+      <td style="color:var(--text-mute)">{{.ID}}</td>
+      <td><strong>{{.Username}}</strong></td>
       <td><span class="role-badge">{{.Role}}</span></td>
-      <td>{{.CreatedAt.Format "2006-01-02"}}</td>
+      <td style="color:var(--text-mute);font-size:12px">{{.CreatedAt.Format "2006-01-02"}}</td>
       <td>
-        {{if ne .Role "admin"}}
-        <form method="POST" action="/admin/users/{{.ID}}/delete" onsubmit="return confirm('Delete user {{.Username}}?')">
-          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-        </form>
-        {{end}}
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          {{if ne .Role "admin"}}
+          <form method="POST" action="/admin/users/{{.ID}}/promote" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-ghost">Make Admin</button>
+          </form>
+          {{else}}
+          <form method="POST" action="/admin/users/{{.ID}}/promote" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-ghost">Make Learner</button>
+          </form>
+          {{end}}
+          <form method="POST" action="/admin/users/{{.ID}}/reset-progress" style="display:inline" onsubmit="return confirm('Reset all progress for {{.Username}}? This cannot be undone.')">
+            <button type="submit" class="btn btn-sm btn-ghost" style="color:var(--amber)">Reset Progress</button>
+          </form>
+          {{if ne .Role "admin"}}
+          <form method="POST" action="/admin/users/{{.ID}}/delete" style="display:inline" onsubmit="return confirm('Delete user {{.Username}}? This cannot be undone.')">
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+          {{end}}
+        </div>
       </td>
     </tr>
     {{end}}
@@ -36,7 +57,7 @@
     <tbody>
     {{range .Labs}}
     <tr>
-      <td class="mono">{{.ID}}</td>
+      <td class="mono" style="font-size:12px">{{.ID}}</td>
       <td>{{.Title}}</td>
       <td><span class="diff-badge {{diffClass .Difficulty}}">{{.Difficulty}}</span></td>
       <td>{{.Category}}</td>
@@ -44,6 +65,6 @@
     {{end}}
     </tbody>
   </table>
-  <p class="admin-note">To add labs, drop a folder into the <code>labs/</code> directory and restart the container.</p>
+  <p class="admin-note">To add labs, drop a folder into the <code>labs/</code> directory and rebuild the container.</p>
 </div>
 {{end}}

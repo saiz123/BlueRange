@@ -1,0 +1,71 @@
+{{template "base" .}}
+{{define "title"}}{{.Campaign.Title}} — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="/campaigns" class="btn-back">← Campaigns</a>
+    <span class="diff-badge diff-{{lower .Campaign.Difficulty}}">{{.Campaign.Difficulty}}</span>
+    {{if eq .RunStatus "completed"}}
+      <span class="badge badge-green">Completed — {{.Score}} pts</span>
+    {{end}}
+  </div>
+  <h1 style="margin-top:8px">{{.Campaign.Title}}</h1>
+  <p class="page-sub">{{.Campaign.Description}}</p>
+  <div class="camp-mitre" style="margin-top:8px">
+    <span class="mitre-label">Attack Chain:</span>
+    <code>{{.Campaign.MITRESummary}}</code>
+  </div>
+</div>
+
+<div class="camp-stages">
+  {{range .Stages}}
+  <div class="camp-stage-row {{.Status}}">
+    <div class="stage-num-col">
+      <div class="stage-circle {{.Status}}">
+        {{if eq .Status "completed"}}✓{{else}}{{.Num}}{{end}}
+      </div>
+      {{if lt .Num (len $.Campaign.Stages)}}<div class="stage-line {{.Status}}"></div>{{end}}
+    </div>
+
+    <div class="stage-body">
+      <div class="stage-header">
+        <h3>Stage {{.Num}}: {{.Title}}</h3>
+        {{if .Score}}<span class="stage-score">{{derefInt .Score}} pts</span>{{end}}
+      </div>
+
+      {{if eq .Status "active"}}
+        <div class="stage-hint">
+          <span class="hint-icon">⚡</span>
+          {{if .AlertID}}
+            New alert ready — investigate it to advance.
+          {{else}}
+            Generating alert&hellip;
+          {{end}}
+        </div>
+        {{if .AlertID}}
+          <a href="/campaigns/{{$.Campaign.Key}}/stage/{{.Num}}" class="btn btn-primary" style="margin-top:10px">
+            Investigate Stage Alert →
+          </a>
+        {{end}}
+
+      {{else if eq .Status "completed"}}
+        <div class="stage-hint stage-done">
+          {{.Hint}}
+        </div>
+
+      {{else}}
+        <div class="stage-hint stage-locked">
+          <span style="color:var(--text-dim)">🔒 Complete the previous stage to unlock.</span>
+        </div>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+
+{{if eq .RunStatus "completed"}}
+<div style="text-align:center;margin-top:32px">
+  <a href="/campaigns/{{.Campaign.Key}}/result" class="btn btn-primary">View Full Results →</a>
+</div>
+{{end}}
+{{end}}

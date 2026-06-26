@@ -5,15 +5,31 @@
   <h1>My Dashboard</h1>
 </div>
 
-<div class="dash-grid">
+<div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+  <!-- Streak card -->
+  <div class="stat-card streak-card {{if .ActiveToday}}streak-active{{end}}">
+    <div class="streak-flame">🔥</div>
+    <div class="stat-num">{{.Streak.Count}}</div>
+    <div class="stat-label">Day Streak</div>
+    {{if .Streak.Shield}}<div class="streak-shield">🛡 Shield ready</div>{{end}}
+    {{if not .ActiveToday}}<div class="streak-cta">Complete a lab to keep your streak!</div>{{end}}
+    {{if .ActiveToday}}<div class="streak-shield" style="color:var(--green)">&#10003; Active today</div>{{end}}
+  </div>
+  <!-- XP / Level card -->
+  <div class="stat-card">
+    <div class="stat-num" style="font-size:26px">Lvl {{.Level.Level}}</div>
+    <div class="stat-label">{{.Level.Title}}</div>
+    <div class="xp-bar-wrap">
+      <div class="xp-bar" style="width:{{pct (sub .Level.XP .Level.PrevXP) (sub .Level.NextXP .Level.PrevXP)}}%"></div>
+    </div>
+    <div class="stat-label" style="margin-top:5px;font-size:11px">{{.Level.XP}} / {{.Level.NextXP}} XP</div>
+  </div>
+  <!-- Labs completed card -->
   <div class="stat-card">
     <div class="stat-num">{{.Completed}}<span class="stat-denom">/{{.Total}}</span></div>
     <div class="stat-label">Labs Completed</div>
   </div>
-  <div class="stat-card">
-    <div class="stat-num">{{.TotalScore}}</div>
-    <div class="stat-label">Total XP</div>
-  </div>
+  <!-- Readiness card -->
   <div class="stat-card">
     <div class="stat-num {{scoreClass .Readiness 100}}">{{.Readiness}}%</div>
     <div class="stat-label">L1 Interview Readiness</div>
@@ -34,6 +50,43 @@
     <span class="skill-pct">{{.Score}}</span>
   </div>
   {{end}}
+</div>
+
+<div class="section-header" style="margin-top:32px">
+  <h2>Badges</h2>
+  <p class="section-sub">Earned through investigation milestones.</p>
+</div>
+<div class="badges-grid">
+  {{range .Badges}}
+  <div class="badge-card {{if .Earned}}badge-earned{{else}}badge-locked{{end}}">
+    <span class="badge-icon">{{.Icon}}</span>
+    <span class="badge-name">{{.Name}}</span>
+    <span class="badge-desc">{{.Desc}}</span>
+    {{if .Earned}}<span class="badge-date">{{.EarnedAt.Format "Jan 2, 2006"}}</span>{{end}}
+  </div>
+  {{end}}
+</div>
+
+<div class="section-header" style="margin-top:32px">
+  <h2>Training Paths</h2>
+  <p class="section-sub">Go beyond labs — multi-stage campaigns, threat hunts, and certifications.</p>
+</div>
+<div class="dash-grid" style="grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:32px">
+  <a href="/campaigns" class="stat-card" style="text-decoration:none;display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:24px">🏴</span>
+    <span class="stat-num" style="font-size:18px">Campaigns</span>
+    <span class="stat-label">Multi-stage attack chains</span>
+  </a>
+  <a href="/hunt" class="stat-card" style="text-decoration:none;display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:24px">🐺</span>
+    <span class="stat-num" style="font-size:18px">Threat Hunts</span>
+    <span class="stat-label">Proactive IOC hunting</span>
+  </a>
+  <a href="/certifications" class="stat-card" style="text-decoration:none;display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:24px">🏆</span>
+    <span class="stat-num" style="font-size:18px">Certifications</span>
+    <span class="stat-label">Milestone-based awards</span>
+  </a>
 </div>
 
 <div class="readiness-box">

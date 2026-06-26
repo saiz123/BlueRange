@@ -1,0 +1,119 @@
+{{template "base" .}}
+{{define "title"}}Analytics — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>Performance Analytics</h1>
+  <p class="page-sub">Your investigation history, skill trajectory, and interview readiness.</p>
+</div>
+
+<!-- Top stats -->
+<div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr));margin-bottom:32px">
+  <div class="stat-card">
+    <div class="stat-num">{{len .Stats}}<span class="stat-denom">/{{.TotalLabs}}</span></div>
+    <div class="stat-label">Labs Completed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num {{scoreClass .WinRate 100}}">{{.WinRate}}%</div>
+    <div class="stat-label">Pass Rate</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">{{.TotalScore}}</div>
+    <div class="stat-label">Total XP Earned</div>
+  </div>
+  <div class="stat-card {{if .InterviewReady}}streak-active{{end}}">
+    {{if .InterviewReady}}
+    <div class="stat-num score-high" style="font-size:20px">&#10003; Ready</div>
+    {{else}}
+    <div class="stat-num score-low" style="font-size:20px">&#10007; Not Yet</div>
+    {{end}}
+    <div class="stat-label">Interview Readiness</div>
+  </div>
+</div>
+
+<!-- Skill radar + bars -->
+<div class="section-header"><h2>Skill Radar</h2><p class="section-sub">Each axis = 0–100. Blue ring = 60-point interview threshold.</p></div>
+<div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;margin-bottom:32px">
+  <!-- SVG radar with server-computed polygon -->
+  <div style="background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius);padding:24px;flex-shrink:0">
+    <svg width="280" height="280" viewBox="-140 -140 280 280" xmlns="http://www.w3.org/2000/svg">
+      <!-- Grid -->
+      <circle cx="0" cy="0" r="100" fill="none" stroke="var(--border)" stroke-width="1"/>
+      <circle cx="0" cy="0" r="60" fill="none" stroke="var(--blue-dim)" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>
+      <circle cx="0" cy="0" r="40" fill="none" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3,3"/>
+      <!-- 8 axis lines -->
+      <line x1="0" y1="-100" x2="0" y2="100" stroke="var(--border)" stroke-width="0.5"/>
+      <line x1="-100" y1="0" x2="100" y2="0" stroke="var(--border)" stroke-width="0.5"/>
+      <line x1="-70.7" y1="-70.7" x2="70.7" y2="70.7" stroke="var(--border)" stroke-width="0.5"/>
+      <line x1="70.7" y1="-70.7" x2="-70.7" y2="70.7" stroke="var(--border)" stroke-width="0.5"/>
+      <!-- Skill polygon (server-computed points) -->
+      <polygon points="{{.RadarPoints}}" fill="rgba(56,139,253,0.18)" stroke="var(--blue)" stroke-width="2" stroke-linejoin="round"/>
+      <!-- Labels -->
+      <text x="0" y="-112" text-anchor="middle" fill="var(--text-mute)" font-size="10">Network</text>
+      <text x="112" y="-112" text-anchor="start" fill="var(--text-mute)" font-size="10">Endpoint</text>
+      <text x="112" y="5" text-anchor="start" fill="var(--text-mute)" font-size="10">Malware</text>
+      <text x="75" y="118" text-anchor="start" fill="var(--text-mute)" font-size="10">Threat Intel</text>
+      <text x="0" y="120" text-anchor="middle" fill="var(--text-mute)" font-size="10">MITRE</text>
+      <text x="-118" y="112" text-anchor="end" fill="var(--text-mute)" font-size="10">IR</text>
+      <text x="-112" y="0" text-anchor="end" fill="var(--text-mute)" font-size="10">Phishing</text>
+      <text x="-112" y="-112" text-anchor="end" fill="var(--text-mute)" font-size="10">Log Analysis</text>
+    </svg>
+  </div>
+  <!-- Skill bars -->
+  <div style="flex:1;min-width:220px">
+    <div class="skills-grid">
+      {{range .SkillBars}}
+      <div class="skill-row">
+        <span class="skill-name">{{.Name}}</span>
+        <div class="skill-bar-wrap">
+          <div class="skill-bar {{if ge .Score 60}}skill-bar-ready{{end}}" style="width:{{.Score}}%"></div>
+        </div>
+        <span class="skill-pct">{{.Score}}</span>
+      </div>
+      {{end}}
+    </div>
+    {{if .InterviewReady}}
+    <p style="font-size:12px;color:var(--green);margin-top:12px">&#10003; All skills above 60 — you're interview-ready!</p>
+    {{else}}
+    <p style="font-size:12px;color:var(--amber);margin-top:12px">
+      Weakest: <strong>{{.WeakestSkill.name}}</strong> — focus here next.
+    </p>
+    {{end}}
+  </div>
+</div>
+
+<!-- Lab performance table -->
+{{if .Stats}}
+<div class="section-header"><h2>Lab Performance</h2></div>
+<div class="queue-table-wrap">
+  <table class="queue-table">
+    <thead>
+      <tr>
+        <th>Lab</th><th>Category</th><th>Difficulty</th>
+        <th>Score</th><th>Best</th><th>Time</th><th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Stats}}
+      <tr class="queue-row">
+        <td class="alert-title">{{if .Lab}}<span class="alert-rule">{{.Lab.Title}}</span>{{end}}</td>
+        <td>{{if .Lab}}<span class="category-tag">{{.Lab.Category}}</span>{{end}}</td>
+        <td>{{if .Lab}}<span class="diff-badge {{diffClass .Lab.Difficulty}}">{{.Lab.Difficulty}}</span>{{end}}</td>
+        <td class="mono {{scoreClass .Score 100}}">{{.Score}}</td>
+        <td class="mono {{scoreClass .BestScore 100}}">{{.BestScore}}</td>
+        <td class="mono" style="color:var(--text-mute)">{{if gt .MinutesTaken 0}}{{.MinutesTaken}}m{{else}}—{{end}}</td>
+        <td class="mono" style="color:var(--text-mute);font-size:12px">{{.SubmittedAt.Format "Jan 2"}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<p class="no-results" style="margin-top:16px">No labs completed yet. <a href="/queue">Start investigating &rarr;</a></p>
+{{end}}
+
+<div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap">
+  <a href="/queue" class="btn btn-primary">Alert Queue</a>
+  <a href="/shift" class="btn btn-secondary">Start Shift</a>
+  <a href="/dashboard" class="btn btn-ghost">Dashboard</a>
+</div>
+{{end}}

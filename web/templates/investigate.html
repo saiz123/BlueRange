@@ -90,7 +90,14 @@
 
   <!-- Logs panel -->
   <div class="tab-panel" x-show="tab==='logs'">
-    <div class="log-toolbar">
+    <div class="log-toolbar" x-data="{sources:[], src:'', q:'', count:null}"
+         @htmx:after-request.window="
+           if($event.detail.pathInfo && $event.detail.pathInfo.requestPath && $event.detail.pathInfo.requestPath.includes('/api/logs/')){
+             let h=$event.detail.xhr.getResponseHeader('X-Log-Sources');
+             if(h) sources=JSON.parse(h);
+             let c=$event.detail.xhr.getResponseHeader('X-Log-Count');
+             if(c!==null) count=c;
+           }">
       <input
         type="text"
         class="log-search"
@@ -99,20 +106,26 @@
         hx-trigger="input changed delay:300ms, search"
         hx-target="#log-results"
         name="q"
-        hx-include="[name='source']">
-      <select name="source" class="source-filter"
-        hx-get="/api/logs/{{.Lab.ID}}"
-        hx-trigger="change"
-        hx-target="#log-results"
-        hx-include="[name='q']">
-        <option value="">All sources</option>
-        <option value="auth">auth</option>
-        <option value="windows-security">windows-security</option>
-        <option value="sysmon">sysmon</option>
-        <option value="firewall">firewall</option>
-        <option value="proxy">proxy</option>
-        <option value="dns">dns</option>
-      </select>
+        x-model="q"
+        :hx-vals="JSON.stringify({source:src})">
+      <div class="log-source-tabs">
+        <button type="button" class="log-src-btn" :class="src===''&&'active'"
+          @click="src=''"
+          hx-get="/api/logs/{{.Lab.ID}}"
+          hx-target="#log-results"
+          hx-trigger="click"
+          :hx-vals="JSON.stringify({q:q,source:''})">All</button>
+        <template x-for="s in sources" :key="s">
+          <button type="button" class="log-src-btn" :class="src===s&&'active'"
+            @click="src=s"
+            hx-get="/api/logs/{{.Lab.ID}}"
+            hx-target="#log-results"
+            hx-trigger="click"
+            :hx-vals="JSON.stringify({q:q,source:s})"
+            x-text="s"></button>
+        </template>
+      </div>
+      <span class="log-count" x-show="count!==null" x-text="count+' entries'"></span>
     </div>
     <div id="log-results" class="log-results"
       hx-get="/api/logs/{{.Lab.ID}}"
@@ -161,16 +174,26 @@
 
 <!-- Verdict Form -->
 {{if eq .Inv.Status "in_progress"}}
-<div class="verdict-section">
+<div class="verdict-section"
+     x-data="{
+       verdict: '{{if .Inv}}{{js .Inv.Verdict}}{{end}}',
+       mitre: ({{mitreTags .Inv.Mitre}}) || [],
+       rationale: '{{if .Inv}}{{js .Inv.Rationale}}{{end}}',
+       mitreOpen: false
+     }">
   <h2>Verdict &amp; Write-up</h2>
-  <form method="POST" action="/investigate/{{.Lab.ID}}/submit" class="verdict-form">
+  <form method="POST" action="/investigate/{{.Lab.ID}}/submit" class="verdict-form"
+        hx-post="/investigate/{{.Lab.ID}}/draft"
+        hx-trigger="every 30s"
+        hx-swap="none"
+        hx-on::after-request="$store.toast.show('Draft saved','info')">
     <div class="form-grid">
       <label class="form-group">
         <span class="form-label">Verdict <span class="required">*</span></span>
-        <select name="verdict" required>
+        <select name="verdict" required x-model="verdict">
           <option value="">— Select —</option>
-          <option value="true_positive" {{if eq .Inv.Verdict "true_positive"}}selected{{end}}>True Positive</option>
-          <option value="false_positive" {{if eq .Inv.Verdict "false_positive"}}selected{{end}}>False Positive</option>
+          <option value="true_positive">True Positive</option>
+          <option value="false_positive">False Positive</option>
         </select>
       </label>
       <label class="form-group">
@@ -189,21 +212,23 @@
     <div class="form-group">
       <span class="form-label">Rationale &amp; Findings <span class="required">*</span></span>
       <textarea name="rationale" rows="6" required
-        placeholder="Describe the evidence you found, why this is or isn't malicious, and what actions you recommend…">{{.Inv.Rationale}}</textarea>
+        placeholder="Describe the evidence you found, why this is or isn't malicious, and what actions you recommend…"
+        @input="rationale=$event.target.value">{{.Inv.Rationale}}</textarea>
       <small class="form-hint">Minimum 25 words. Document specific IOCs, log entries, and your reasoning.</small>
     </div>
 
     <div class="form-group">
       <span class="form-label">MITRE ATT&amp;CK Techniques</span>
-      <div class="mitre-select" x-data="{open:false, selected:{{mitreTags .Inv.Mitre}}}">
-        <button type="button" class="mitre-toggle" @click="open=!open">
-          Select techniques <span x-text="selected.length ? '('+selected.length+' selected)' : ''"></span>
+      <div class="mitre-select" @click.outside="mitreOpen=false">
+        <button type="button" class="mitre-toggle" @click="mitreOpen=!mitreOpen">
+          Select techniques <span x-text="mitre.length ? '('+mitre.length+' selected)' : ''"></span>
         </button>
-        <div class="mitre-dropdown" x-show="open" @click.outside="open=false">
+        <div class="mitre-dropdown" x-show="mitreOpen">
           {{range .MitreList}}
           <label class="mitre-opt">
             <input type="checkbox" name="mitre" value="{{.ID}}"
-              x-model="selected">
+              :checked="mitre.includes('{{.ID}}')"
+              @change="$event.target.checked ? mitre.push('{{.ID}}') : mitre.splice(mitre.indexOf('{{.ID}}'), 1)">
             <span><strong>{{.ID}}</strong> — {{.Name}}</span>
           </label>
           {{end}}
@@ -227,6 +252,16 @@
       </div>
     </div>
 
+    <!-- M1.2: Real-time submission checklist -->
+    <div class="submit-checklist">
+      <span :class="verdict ? 'check-done' : 'check-pending'">&#10003; Verdict</span>
+      <span :class="mitre.length > 0 ? 'check-done' : 'check-pending'">&#10003; MITRE mapped</span>
+      <span :class="rationale.trim().split(/\s+/).filter(Boolean).length >= 25 ? 'check-done' : 'check-pending'">
+        &#10003; Rationale
+        (<span x-text="rationale.trim().split(/\s+/).filter(Boolean).length"></span>/25 words)
+      </span>
+    </div>
+
     <div class="verdict-actions">
       <button type="submit" class="btn btn-primary btn-lg">Submit Verdict</button>
       {{if eq .Inv.Mode "guided"}}
@@ -234,10 +269,41 @@
       {{end}}
     </div>
   </form>
+  <script>
+    window.addEventListener('beforeunload', function() {
+      var f = document.querySelector('.verdict-form');
+      if (f) navigator.sendBeacon('/investigate/{{.Lab.ID}}/draft', new FormData(f));
+    });
+  </script>
 </div>
 {{else}}
 <div class="verdict-done">
   <p>Verdict submitted. <a href="/result/{{.Lab.ID}}">View your score &rarr;</a></p>
+  <div class="retake-panel">
+    <p>Score: <strong class="{{scoreClass (derefInt .Inv.Score) 100}}">{{derefInt .Inv.Score}}/100</strong>
+       {{if ge (derefInt .Inv.Score) 70}}<span style="color:var(--green)">&#10003; Passed</span>{{else}}<span style="color:var(--red)">&#10007; Not passed</span>{{end}}
+    </p>
+    <p style="margin-top:8px;color:var(--text-mute);font-size:13px">Want to try again? Reset this lab and reattempt at any difficulty mode.</p>
+    <form method="POST" action="/investigate/{{.Lab.ID}}/reset" class="start-form" style="margin-top:16px">
+      <div class="mode-choice">
+        <label class="mode-opt">
+          <input type="radio" name="mode" value="guided" checked>
+          <span>
+            <strong>Guided Mode</strong>
+            <small>Hints + walkthrough access.</small>
+          </span>
+        </label>
+        <label class="mode-opt">
+          <input type="radio" name="mode" value="exam">
+          <span>
+            <strong>Exam Mode</strong>
+            <small>No hints. Strict scoring.</small>
+          </span>
+        </label>
+      </div>
+      <button type="submit" class="btn btn-secondary">Retake Lab</button>
+    </form>
+  </div>
 </div>
 {{end}}
 

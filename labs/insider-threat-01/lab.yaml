@@ -1,0 +1,58 @@
+id: insider-threat-01
+title: Anomalous HR File Access — Insider Risk
+difficulty: core
+category: data-exfil
+tags:
+  - insider-threat
+  - data-exfiltration
+  - ueba
+  - usb
+
+mitre:
+  - id: T1078
+    name: Valid Accounts
+  - id: T1048
+    name: Exfiltration Over Alternative Protocol
+  - id: T1052.001
+    name: Exfiltration over USB
+  - id: T1083
+    name: File and Directory Discovery
+
+alert:
+  severity: high
+  source: ueba
+  rule: Anomalous Volume of HR Record Access by Single User
+  triggered_at: "2026-06-25T14:22:10Z"
+  src_ip: "10.0.2.45"
+
+scenario: |
+  The UEBA platform fired on user account mwilson (Mary Wilson, HR Analyst) at 14:22 UTC.
+  Over a 90-minute window, mwilson accessed 1,847 HR records — 40× her normal daily baseline.
+  Simultaneously, a USB mass storage device was connected to her workstation (DESKTOP-HRA-03).
+  HR has no ongoing project that would require bulk file access. Mary submitted her resignation
+  two weeks ago and her last working day is Friday.
+
+  Determine if this is malicious data exfiltration or a legitimate business activity.
+
+rationale_keywords:
+  - resignation
+  - USB
+  - bulk access
+  - exfiltration
+  - anomalous
+  - baseline
+  - HR records
+  - insider
+
+rubric:
+  expected_verdict: true_positive
+  expected_escalation: escalate
+  required_mitre:
+    - T1078
+    - T1052.001
+  score_breakdown:
+    correct_verdict: 40
+    required_findings: 30
+    correct_mitre: 20
+    writeup_quality: 10
+  passing_score: 70

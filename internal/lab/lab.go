@@ -29,6 +29,12 @@ type ScoreBreakdown struct {
 	RequiredFindings int `yaml:"required_findings" json:"required_findings"`
 	CorrectMitre     int `yaml:"correct_mitre"     json:"correct_mitre"`
 	WriteupQuality   int `yaml:"writeup_quality"   json:"writeup_quality"`
+	IOCEnrichment    int `yaml:"ioc_enrichment"    json:"ioc_enrichment"`
+}
+
+type TimeBonus struct {
+	ThresholdMinutes int `yaml:"threshold_minutes" json:"threshold_minutes"`
+	BonusPoints      int `yaml:"bonus_points"      json:"bonus_points"`
 }
 
 type Rubric struct {
@@ -37,6 +43,9 @@ type Rubric struct {
 	RequiredMitre      []string       `yaml:"required_mitre"      json:"required_mitre"`
 	ScoreBreakdown     ScoreBreakdown `yaml:"score_breakdown"     json:"score_breakdown"`
 	PassingScore       int            `yaml:"passing_score"       json:"passing_score"`
+	DifficultyModifier float64        `yaml:"difficulty_modifier" json:"difficulty_modifier"`
+	TimeBonus          TimeBonus      `yaml:"time_bonus"          json:"time_bonus"`
+	MinWriteupWords    int            `yaml:"min_writeup_words"   json:"min_writeup_words"`
 }
 
 type Lab struct {
@@ -123,6 +132,10 @@ func (r *Registry) All() []*Lab {
 		out = append(out, l)
 	}
 	return out
+}
+
+func (r *Registry) ByDifficulty(d string) []*Lab {
+	return r.byDiff[d]
 }
 
 func dirHasFiles(dir string) bool {

@@ -153,6 +153,28 @@ CREATE TABLE IF NOT EXISTS certifications (
   UNIQUE(user_id, cert_key)
 );
 `},
+		{7, `
+ALTER TABLE user_streak ADD COLUMN career_tier INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE user_streak ADD COLUMN tier_changed_at DATETIME;
+CREATE TABLE IF NOT EXISTS daily_missions (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER NOT NULL REFERENCES users(id),
+  date_key    TEXT NOT NULL,
+  slot        INTEGER NOT NULL,
+  type        TEXT NOT NULL,
+  title       TEXT NOT NULL,
+  description TEXT NOT NULL,
+  target_n    INTEGER NOT NULL DEFAULT 1,
+  progress    INTEGER NOT NULL DEFAULT 0,
+  completed   INTEGER NOT NULL DEFAULT 0,
+  reward_xp   INTEGER NOT NULL DEFAULT 15,
+  UNIQUE(user_id, date_key, slot)
+);
+CREATE TABLE IF NOT EXISTS daily_briefing (
+  user_id   INTEGER PRIMARY KEY REFERENCES users(id),
+  last_seen TEXT NOT NULL DEFAULT ''
+);
+`},
 	}
 
 	for _, m := range migrations {

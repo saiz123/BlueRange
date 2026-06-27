@@ -275,4 +275,6 @@ func (h *Handler) completeCampaignStage(userID, alertID int64, score int) {
 		h.db.Exec(`UPDATE campaign_runs SET current_stage=? WHERE id=?`, nextStage, runID)
 		h.ensureStageAlert(runID, c, nextStage)
 	}
+
+	h.updateMissionProgress(userID, "campaign_stage", map[string]any{"score": score})
 }

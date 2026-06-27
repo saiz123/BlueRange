@@ -262,6 +262,8 @@ func (h *Handler) endShift(shiftID, userID int64) {
 	if hour >= 23 || hour < 4 {
 		h.db.Exec(`INSERT OR IGNORE INTO badges(user_id,badge_key) VALUES(?,'night_owl')`, userID)
 	}
+
+	h.updateMissionProgress(userID, "shift_end", map[string]any{"score": total})
 }
 
 // ── Shift Result ──────────────────────────────────────────────────────────────

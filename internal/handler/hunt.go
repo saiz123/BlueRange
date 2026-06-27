@@ -208,6 +208,8 @@ func (h *Handler) postSubmitHunt(w http.ResponseWriter, r *http.Request) {
 		u.ID, "threat_intel", score/10, score/10,
 	)
 
+	h.updateMissionProgress(u.ID, "hunt_submit", map[string]any{"score": score})
+
 	http.Redirect(w, r, "/hunt/"+key+"/result", http.StatusSeeOther)
 }
 

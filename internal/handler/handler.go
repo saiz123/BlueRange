@@ -111,6 +111,9 @@ func (h *Handler) Routes() http.Handler {
 		// SSE for live alert notifications
 		r.Get("/api/sse", h.apiSSE)
 
+		// Daily briefing dismiss
+		r.Post("/api/briefing/seen", h.postBriefingSeen)
+
 		// htmx API endpoints
 		r.Get("/api/logs/{labID}", h.apiLogs)
 		r.Post("/api/enrichment", h.apiEnrichment)
@@ -286,10 +289,33 @@ func (h *Handler) getQueue(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Career tier needed for mission generation
+	h.db.Exec(`INSERT OR IGNORE INTO user_streak(user_id) VALUES(?)`, u.ID)
+	var bonusXP, cachedTier int
+	h.db.QueryRow(`SELECT COALESCE(bonus_xp,0), COALESCE(career_tier,1) FROM user_streak WHERE user_id=?`, u.ID).Scan(&bonusXP, &cachedTier)
+	if cachedTier < 1 {
+		cachedTier = 1
+	}
+	h.ensureDailyMissions(u.ID, cachedTier)
+	missions := h.loadTodayMissions(u.ID)
+
+	// Show briefing modal on first queue visit of the day
+	today := time.Now().UTC().Format("2006-01-02")
+	var lastSeen string
+	h.db.QueryRow(`SELECT COALESCE(last_seen,'') FROM daily_briefing WHERE user_id=?`, u.ID).Scan(&lastSeen)
+	showBriefing := lastSeen != today
+
+	var liveCount int
+	h.db.QueryRow(`SELECT COUNT(*) FROM live_alerts WHERE expires_at > CURRENT_TIMESTAMP`).Scan(&liveCount)
+
 	h.render(w, r, "queue.html", map[string]any{
 		"DailyAlerts":   dailyAlerts,
 		"BacklogAlerts": backlogAlerts,
 		"LiveAlerts":    liveAlerts,
+		"Missions":      missions,
+		"ShowBriefing":  showBriefing,
+		"ThreatOfDay":   threatOfTheDay(),
+		"LiveCount":     liveCount,
 	})
 }
 
@@ -338,6 +364,13 @@ var badgeCatalogue = []badgeInfo{
 	{Key: "shift_ace", Icon: "🎯", Name: "Shift Ace", Desc: "Completed a full shift with zero SLA breaches"},
 	{Key: "speed_triage", Icon: "⚡", Name: "Speed Triage", Desc: "Averaged under 5 minutes per alert in a shift"},
 	{Key: "night_owl", Icon: "🦉", Name: "Night Owl", Desc: "Completed a SOC shift after midnight"},
+	// Career rank badges
+	{Key: "rank_l1", Icon: "🔵", Name: "SOC Analyst L1", Desc: "Promoted to SOC Analyst L1"},
+	{Key: "rank_l2", Icon: "🟣", Name: "SOC Analyst L2", Desc: "Promoted to SOC Analyst L2"},
+	{Key: "rank_senior", Icon: "🟡", Name: "Senior Analyst", Desc: "Promoted to Senior Analyst"},
+	{Key: "rank_ti_lead", Icon: "🟠", Name: "Threat Intel Lead", Desc: "Promoted to Threat Intelligence Lead"},
+	{Key: "rank_ir_lead", Icon: "🔴", Name: "IR Lead", Desc: "Promoted to Incident Response Lead"},
+	{Key: "rank_director", Icon: "⭐", Name: "SOC Director", Desc: "Reached the highest rank — SOC Director"},
 }
 
 func computeLevel(xp int) levelInfo {
@@ -449,6 +482,11 @@ func (h *Handler) getDashboard(w http.ResponseWriter, r *http.Request) {
 		Scan(&streak.Count, &streak.LastDate, &streak.Shield, &streak.BonusXP)
 	activeToday := streak.LastDate == time.Now().UTC().Format("2006-01-02")
 
+	// Career tier + daily missions
+	tier := h.computeCareerTier(u.ID, totalScore)
+	h.ensureDailyMissions(u.ID, tier.Num)
+	missions := h.loadTodayMissions(u.ID)
+
 	h.render(w, r, "dashboard.html", map[string]any{
 		"Completed":   completed,
 		"Total":       total,
@@ -459,6 +497,8 @@ func (h *Handler) getDashboard(w http.ResponseWriter, r *http.Request) {
 		"Badges":      badges,
 		"Streak":      streak,
 		"ActiveToday": activeToday,
+		"Tier":        tier,
+		"Missions":    missions,
 	})
 }
 
@@ -573,12 +613,40 @@ func (h *Handler) postSubmit(w http.ResponseWriter, r *http.Request) {
 	h.completeShiftAlert(u.ID, labID, result.Score)
 	su := h.updateStreak(u.ID)
 
+	// XP multipliers
+	bonus := 0
+	var invMode string
+	h.db.QueryRow(`SELECT mode FROM investigations WHERE user_id=? AND lab_id=?`, u.ID, labID).Scan(&invMode)
+	if invMode == "exam" && result.Score > 0 {
+		bonus += result.Score * 15 / 100
+	}
+	hour := time.Now().UTC().Hour()
+	if hour >= 22 || hour < 5 {
+		bonus += result.Score * 10 / 100 // on-call shift bonus
+	}
+	if bonus > 0 {
+		h.db.Exec(`INSERT INTO user_streak(user_id,bonus_xp) VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET bonus_xp=bonus_xp+excluded.bonus_xp`, u.ID, bonus)
+	}
+
+	// Mission progress
+	wordCount := len(strings.Fields(sub.Rationale))
+	missionMeta := map[string]any{
+		"score":       result.Score,
+		"category":    l.Category,
+		"mode":        invMode,
+		"mitre_count": len(mitre),
+		"word_count":  wordCount,
+	}
+	completedMissions := h.updateMissionProgress(u.ID, "lab_submit", missionMeta)
+
 	toastMsg := "Investigation+submitted"
 	toastType := "success"
 	if su.IsNewDay && su.Milestone > 0 {
 		toastMsg = fmt.Sprintf("%%F0%%9F%%94%%A5+%d-Day+Streak%%21+%%2B%d+bonus+XP", su.StreakCount, su.BonusXP)
 	} else if su.IsNewDay {
 		toastMsg = fmt.Sprintf("Investigation+submitted+%%E2%%80%%94+%%F0%%9F%%94%%A5+Day+%d+streak", su.StreakCount)
+	} else if len(completedMissions) > 0 {
+		toastMsg = fmt.Sprintf("%%E2%%9C%%85+Mission+Complete%%3A+%s", strings.ReplaceAll(completedMissions[0], " ", "+"))
 	}
 	http.Redirect(w, r, "/result/"+labID+"?toast="+toastMsg+"&toast_type="+toastType, http.StatusSeeOther)
 }
@@ -1352,6 +1420,18 @@ func fnv1a(s string) uint32 {
 		h *= 16777619
 	}
 	return h
+}
+
+// ── Briefing ─────────────────────────────────────────────────────────────────
+
+func (h *Handler) postBriefingSeen(w http.ResponseWriter, r *http.Request) {
+	u := auth.UserFromCtx(r.Context())
+	today := time.Now().UTC().Format("2006-01-02")
+	h.db.Exec(
+		`INSERT INTO daily_briefing(user_id, last_seen) VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET last_seen=excluded.last_seen`,
+		u.ID, today,
+	)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func sanitizeFTS(q string) string {

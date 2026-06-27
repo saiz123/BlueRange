@@ -1,10 +1,84 @@
 {{template "base" .}}
 {{define "title"}}Alert Queue — BlueRange{{end}}
 {{define "content"}}
+
+{{/* ── Daily Briefing Modal ── */}}
+{{if .ShowBriefing}}
+<div class="briefing-overlay" x-data="{open:true}" x-show="open" x-transition.opacity>
+  <div class="briefing-modal" @click.outside="open=false;dismissBriefing()">
+    <div class="briefing-header">
+      <span class="briefing-title">&#128203; Shift Briefing</span>
+      <span class="briefing-time">{{.ThreatOfDay}}</span>
+    </div>
+
+    <div class="briefing-threat">
+      <span class="briefing-threat-label">Threat Intel Today</span>
+      <p>{{.ThreatOfDay}}</p>
+    </div>
+
+    <div class="briefing-stats">
+      <div class="briefing-stat">
+        <span class="briefing-stat-num">{{.LiveCount}}</span>
+        <span class="briefing-stat-label">alerts in queue</span>
+      </div>
+    </div>
+
+    {{if .Missions}}
+    <div class="briefing-missions">
+      <div class="briefing-section-label">Today's Missions</div>
+      {{range .Missions}}
+      {{if gt .Slot 0}}
+      <div class="briefing-mission-row {{if .Completed}}mission-done{{end}}">
+        <span class="briefing-mission-slot">M{{.Slot}}</span>
+        <div class="briefing-mission-info">
+          <span class="briefing-mission-title">{{.Title}}</span>
+          <span class="briefing-mission-desc">{{.Description}}</span>
+        </div>
+        <span class="briefing-mission-xp">+{{.RewardXP}} XP</span>
+        {{if .Completed}}<span class="mission-check">✓</span>{{end}}
+      </div>
+      {{end}}
+      {{end}}
+    </div>
+    {{end}}
+
+    <div class="briefing-footer">
+      <button class="btn btn-primary" @click="open=false;dismissBriefing()">Begin Shift</button>
+    </div>
+  </div>
+</div>
+<script>
+function dismissBriefing() {
+  fetch('/api/briefing/seen', {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}});
+}
+</script>
+{{end}}
+
 <div class="page-header">
   <h1>Alert Queue</h1>
   <p class="page-sub">Your daily SOC inbox. Live feed updates every 5 minutes.</p>
 </div>
+
+{{/* ── Daily Missions strip ── */}}
+{{if .Missions}}
+<div class="missions-strip" style="margin-bottom:24px">
+  {{range .Missions}}
+  {{if gt .Slot 0}}
+  <div class="mission-card {{if .Completed}}mission-done{{end}}">
+    <div class="mission-header">
+      {{if .Completed}}<span class="mission-check">✓</span>{{else}}<span class="mission-slot">M{{.Slot}}</span>{{end}}
+      <span class="mission-xp">+{{.RewardXP}} XP</span>
+    </div>
+    <div class="mission-title">{{.Title}}</div>
+    <div class="mission-progress-wrap">
+      <div class="mission-progress-bar" style="width:{{.ProgressPct}}%"></div>
+    </div>
+    <div class="mission-progress-label">{{.Progress}} / {{.TargetN}}</div>
+  </div>
+  {{end}}
+  {{end}}
+</div>
+{{end}}
 
 <!-- Live Alert Feed -->
 {{if .LiveAlerts}}

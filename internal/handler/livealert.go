@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -189,6 +190,13 @@ func (h *Handler) postSubmitLiveAlert(w http.ResponseWriter, r *http.Request) {
 
 	// Check if this alert belongs to a campaign stage
 	h.completeCampaignStage(u.ID, alertID, result.Score)
+
+	// Mission progress
+	h.updateMissionProgress(u.ID, "live_alert_submit", map[string]any{
+		"score":       result.Score,
+		"mitre_count": len(mitreRaw),
+		"word_count":  len(strings.Fields(rationale)),
+	})
 
 	http.Redirect(w, r, "/alert/"+chi.URLParam(r, "alertID")+"/result", http.StatusSeeOther)
 }

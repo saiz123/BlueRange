@@ -5,7 +5,33 @@
   <h1>My Dashboard</h1>
 </div>
 
+{{/* ── Promotion banner ── */}}
+{{if .Tier.IsNew}}
+<div class="promotion-banner" x-data="{show:true}" x-show="show" x-transition>
+  <div class="promo-inner">
+    <span class="promo-icon">🎖</span>
+    <div>
+      <strong>Promoted to {{.Tier.Title}}</strong>
+      <span class="promo-sub">Your career tier has advanced — keep pushing.</span>
+    </div>
+    <button class="promo-close" @click="show=false">✕</button>
+  </div>
+</div>
+{{end}}
+
 <div class="dash-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+  <!-- Career tier card -->
+  <div class="stat-card tier-card tier-{{.Tier.Color}}">
+    <div class="tier-ring">T{{.Tier.Num}}</div>
+    <div class="stat-num" style="font-size:15px;line-height:1.2;margin-top:4px">{{.Tier.Title}}</div>
+    {{if .Tier.NextTitle}}
+    <div class="tier-next">Next: {{.Tier.NextTitle}}</div>
+    <div class="tier-gate">{{.Tier.NextGate}}</div>
+    {{else}}
+    <div class="tier-next" style="color:var(--gold,#f5c518)">Max tier reached</div>
+    {{end}}
+  </div>
+
   <!-- Streak card -->
   <div class="stat-card streak-card {{if .ActiveToday}}streak-active{{end}}">
     <div class="streak-flame">🔥</div>
@@ -15,6 +41,7 @@
     {{if not .ActiveToday}}<div class="streak-cta">Complete a lab to keep your streak!</div>{{end}}
     {{if .ActiveToday}}<div class="streak-shield" style="color:var(--green)">&#10003; Active today</div>{{end}}
   </div>
+
   <!-- XP / Level card -->
   <div class="stat-card">
     <div class="stat-num" style="font-size:26px">Lvl {{.Level.Level}}</div>
@@ -24,11 +51,13 @@
     </div>
     <div class="stat-label" style="margin-top:5px;font-size:11px">{{.Level.XP}} / {{.Level.NextXP}} XP</div>
   </div>
+
   <!-- Labs completed card -->
   <div class="stat-card">
     <div class="stat-num">{{.Completed}}<span class="stat-denom">/{{.Total}}</span></div>
     <div class="stat-label">Labs Completed</div>
   </div>
+
   <!-- Readiness card -->
   <div class="stat-card">
     <div class="stat-num {{scoreClass .Readiness 100}}">{{.Readiness}}%</div>
@@ -36,7 +65,33 @@
   </div>
 </div>
 
-<div class="section-header">
+{{/* ── Daily Missions ── */}}
+{{if .Missions}}
+<div class="section-header" style="margin-top:28px">
+  <h2>Today's Missions</h2>
+  <p class="section-sub">Complete all 3 for a +25 XP day-complete bonus.</p>
+</div>
+<div class="missions-strip">
+  {{range .Missions}}
+  {{if gt .Slot 0}}
+  <div class="mission-card {{if .Completed}}mission-done{{end}}">
+    <div class="mission-header">
+      {{if .Completed}}<span class="mission-check">✓</span>{{else}}<span class="mission-slot">M{{.Slot}}</span>{{end}}
+      <span class="mission-xp">+{{.RewardXP}} XP</span>
+    </div>
+    <div class="mission-title">{{.Title}}</div>
+    <div class="mission-desc">{{.Description}}</div>
+    <div class="mission-progress-wrap">
+      <div class="mission-progress-bar" style="width:{{.ProgressPct}}%"></div>
+    </div>
+    <div class="mission-progress-label">{{.Progress}} / {{.TargetN}}</div>
+  </div>
+  {{end}}
+  {{end}}
+</div>
+{{end}}
+
+<div class="section-header" style="margin-top:32px">
   <h2>Skill Progress</h2>
   <p class="section-sub">Mapped to CompTIA Security+ domains and SOC L1 interview criteria.</p>
 </div>

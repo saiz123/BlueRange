@@ -175,6 +175,32 @@ CREATE TABLE IF NOT EXISTS daily_briefing (
   last_seen TEXT NOT NULL DEFAULT ''
 );
 `},
+		{8, `
+CREATE TABLE IF NOT EXISTS interview_sessions (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id        INTEGER NOT NULL REFERENCES users(id),
+  category       TEXT NOT NULL,
+  questions_json TEXT NOT NULL DEFAULT '[]',
+  answers_json   TEXT NOT NULL DEFAULT '{}',
+  scores_json    TEXT NOT NULL DEFAULT '{}',
+  current_q      INTEGER NOT NULL DEFAULT 1,
+  status         TEXT NOT NULL DEFAULT 'active',
+  score          INTEGER,
+  started_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+  completed_at   DATETIME
+);
+CREATE TABLE IF NOT EXISTS sprint_sessions (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id      INTEGER NOT NULL REFERENCES users(id),
+  alert_count  INTEGER NOT NULL DEFAULT 10,
+  score        INTEGER,
+  accuracy_pct INTEGER,
+  avg_seconds  INTEGER,
+  status       TEXT NOT NULL DEFAULT 'active',
+  started_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+  completed_at DATETIME
+);
+`},
 	}
 
 	for _, m := range migrations {

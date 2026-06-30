@@ -1,0 +1,45 @@
+{{template "base" .}}
+{{define "title"}}Interview Simulator — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>SOC L1 Interview Simulator</h1>
+  <p class="page-sub">Practice answering real interview questions with timed sessions and keyword-graded feedback. {{.Total}} questions across 4 categories.</p>
+</div>
+
+<div class="interview-grid">
+  {{range .Categories}}
+  <div class="interview-cat-card">
+    <div class="interview-cat-icon">{{.Icon}}</div>
+    <div class="interview-cat-name">{{.Label}}</div>
+    <div class="interview-cat-desc">{{.Desc}}</div>
+    <div class="interview-cat-count">{{.Count}} questions</div>
+    <form method="POST" action="/interview/start">
+      <input type="hidden" name="category" value="{{.Key}}">
+      <button type="submit" class="btn btn-primary interview-start-btn">Start Session</button>
+    </form>
+  </div>
+  {{end}}
+
+  <!-- All categories card -->
+  <div class="interview-cat-card interview-all-card">
+    <div class="interview-cat-icon">🎯</div>
+    <div class="interview-cat-name">Full Mock Interview</div>
+    <div class="interview-cat-desc">Mixed questions across all four categories — closest to a real L1 screen call.</div>
+    <div class="interview-cat-count">10 random questions</div>
+    <form method="POST" action="/interview/start">
+      <input type="hidden" name="category" value="all">
+      <button type="submit" class="btn btn-primary interview-start-btn">Start Full Mock</button>
+    </form>
+  </div>
+</div>
+
+<div class="interview-tips">
+  <h3>How the simulator works</h3>
+  <ul>
+    <li>Each session gives you <strong>90 seconds per question</strong> — real screen calls move fast.</li>
+    <li>Answers are <strong>keyword-graded</strong>: hitting key concepts earns marks, not word-for-word matching.</li>
+    <li>After each session you'll see <strong>per-question feedback</strong>, model answers, and labs to practice weak areas.</li>
+    <li>Scoring: <span style="color:var(--green)">Strong (≥60% keywords)</span> · <span style="color:var(--amber)">Partial (30-59%)</span> · <span style="color:var(--red)">Weak (&lt;30%)</span></li>
+  </ul>
+</div>
+{{end}}

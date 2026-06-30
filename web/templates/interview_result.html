@@ -1,0 +1,129 @@
+{{template "base" .}}
+{{define "title"}}Interview Result — BlueRange{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div class="inv-breadcrumb"><a href="/interview">← Interview Simulator</a></div>
+  <h1>Session Complete</h1>
+  <p class="page-sub">{{.Category}} · {{len .Results}} questions</p>
+</div>
+
+<!-- Score hero -->
+<div class="interview-result-hero {{.OverallGrade}}-result">
+  <div class="irh-score">{{.AvgScore}}<span class="irh-max">/100</span></div>
+  <div class="irh-label">
+    {{if eq .OverallGrade "strong"}}
+      <span class="verdict-pass">✓ Interview-Ready Performance</span>
+    {{else if eq .OverallGrade "partial"}}
+      <span style="color:var(--amber)">◐ Room to Improve</span>
+    {{else}}
+      <span class="verdict-fail">✗ Needs More Practice</span>
+    {{end}}
+  </div>
+  <div class="irh-breakdown">
+    <span class="irh-strong">{{.Strong}} strong</span>
+    <span class="irh-sep">·</span>
+    <span class="irh-partial">{{.Partial}} partial</span>
+    <span class="irh-sep">·</span>
+    <span class="irh-weak">{{.Weak}} weak</span>
+  </div>
+</div>
+
+<!-- Per-question breakdown -->
+<div class="section-header" style="margin-top:28px">
+  <h2>Question Breakdown</h2>
+</div>
+<div class="interview-results-list">
+  {{range $i, $r := .Results}}
+  <div class="interview-result-item {{$r.Grade}}-item" x-data="{open:false}">
+    <div class="iri-header" @click="open=!open" style="cursor:pointer">
+      <span class="iri-num">Q{{add $i 1}}</span>
+      <span class="iri-grade-dot
+        {{if eq $r.Grade "strong"}}grade-strong
+        {{else if eq $r.Grade "partial"}}grade-partial
+        {{else}}grade-weak{{end}}">
+        {{if eq $r.Grade "strong"}}✓{{else if eq $r.Grade "partial"}}◐{{else}}✗{{end}}
+      </span>
+      <span class="iri-question">{{$r.Q.Question}}</span>
+      <span class="iri-score" :class="open && 'iri-score-open'">{{$r.Score}}% <span x-text="open ? '▲' : '▼'" style="font-size:10px"></span></span>
+    </div>
+
+    <div x-show="open" x-transition>
+      <div class="iri-body">
+        <!-- Your answer -->
+        <div class="iri-section">
+          <span class="iri-section-label">Your Answer</span>
+          {{if $r.Answer}}
+          <p class="iri-answer-text">{{$r.Answer}}</p>
+          {{else}}
+          <p class="iri-answer-text" style="color:var(--text-dim);font-style:italic">No answer given (skipped or timed out)</p>
+          {{end}}
+        </div>
+
+        <!-- Keywords -->
+        {{if $r.Matched}}
+        <div class="iri-section">
+          <span class="iri-section-label" style="color:var(--green)">Concepts you covered</span>
+          <div class="iri-kw-list">
+            {{range $r.Matched}}<span class="iri-kw iri-kw-hit">{{.}}</span>{{end}}
+          </div>
+        </div>
+        {{end}}
+        {{if $r.Missed}}
+        <div class="iri-section">
+          <span class="iri-section-label" style="color:var(--red)">Concepts you missed</span>
+          <div class="iri-kw-list">
+            {{range $r.Missed}}<span class="iri-kw iri-kw-miss">{{.}}</span>{{end}}
+          </div>
+        </div>
+        {{end}}
+
+        <!-- Model answer -->
+        <div class="iri-section">
+          <span class="iri-section-label">Model Answer</span>
+          <p class="iri-model-answer">{{$r.Q.Model}}</p>
+        </div>
+
+        {{if $r.Q.LabHint}}
+        <div class="iri-section">
+          <a href="/investigate/{{$r.Q.LabHint}}" class="btn btn-sm btn-ghost">Practice: {{$r.Q.LabHint}} →</a>
+        </div>
+        {{end}}
+      </div>
+    </div>
+  </div>
+  {{end}}
+</div>
+
+<!-- Gap analysis -->
+{{if .LabSuggestions}}
+<div class="section-header" style="margin-top:32px">
+  <h2>Suggested Practice Labs</h2>
+  <p class="section-sub">These labs cover the concepts you struggled with most.</p>
+</div>
+<div class="interview-lab-suggestions">
+  {{range .LabSuggestions}}
+  <a href="/investigate/{{.ID}}" class="suggestion-card">
+    <span class="suggestion-icon">🧪</span>
+    <div>
+      <span class="suggestion-title">{{.Title}}</span>
+      <span class="suggestion-sub">{{.ID}}</span>
+    </div>
+    <span class="suggestion-arrow">→</span>
+  </a>
+  {{end}}
+</div>
+{{end}}
+
+<div class="result-actions" style="margin-top:32px">
+  <form method="POST" action="/interview/start" style="display:inline">
+    <input type="hidden" name="category" value="{{.Session.Category}}">
+    <button type="submit" class="btn btn-primary">Retry Same Category</button>
+  </form>
+  <form method="POST" action="/interview/start" style="display:inline">
+    <input type="hidden" name="category" value="all">
+    <button type="submit" class="btn btn-secondary">Full Mock Interview</button>
+  </form>
+  <a href="/interview" class="btn btn-ghost">All Categories</a>
+  <a href="/dashboard" class="btn btn-ghost">Dashboard</a>
+</div>
+{{end}}

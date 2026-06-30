@@ -894,3 +894,166 @@ pre { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-bre
 @media (max-width: 640px) {
   .missions-strip { grid-template-columns: 1fr; }
 }
+
+/* ── Interview Simulator ─────────────────────────────────────────────────── */
+.interview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.interview-cat-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color .2s;
+}
+.interview-cat-card:hover { border-color: var(--blue); }
+.interview-all-card { border-style: dashed; }
+.interview-cat-icon { font-size: 28px; }
+.interview-cat-name { font-size: 15px; font-weight: 700; }
+.interview-cat-desc { font-size: 12px; color: var(--text-mute); flex: 1; line-height: 1.5; }
+.interview-cat-count { font-size: 11px; color: var(--text-dim); }
+.interview-start-btn { margin-top: 8px; width: 100%; }
+
+.interview-tips {
+  background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+}
+.interview-tips h3 { margin-bottom: 12px; font-size: 14px; }
+.interview-tips ul { padding-left: 18px; }
+.interview-tips li { font-size: 13px; color: var(--text-mute); margin-bottom: 6px; line-height: 1.5; }
+.interview-tips li strong { color: var(--text); }
+
+/* ── Interview session page ── */
+.interview-progress-bar-wrap {
+  height: 3px; background: var(--bg-3); border-radius: 99px; margin-bottom: 24px;
+}
+.interview-progress-bar {
+  height: 100%; background: var(--blue); border-radius: 99px; transition: width .3s;
+}
+.interview-header {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+}
+.interview-qnum { font-size: 18px; font-weight: 700; }
+.interview-qtotal { color: var(--text-mute); font-weight: 400; }
+.interview-timer-wrap {
+  margin-left: auto; position: relative; width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+}
+.timer-ring { width: 52px; height: 52px; transform: rotate(-90deg); position: absolute; top: 0; left: 0; }
+.timer-ring-bg { fill: none; stroke: var(--bg-3); stroke-width: 3; }
+.timer-ring-fill {
+  fill: none; stroke: var(--blue); stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset .9s linear, stroke .3s;
+}
+.timer-ring-warn { stroke: var(--amber) !important; }
+.timer-ring-danger { stroke: var(--red) !important; }
+.timer-text {
+  position: relative; font-size: 15px; font-weight: 700; z-index: 1;
+}
+.timer-warn { color: var(--amber); }
+.timer-danger { color: var(--red); }
+.interview-cat-tag {
+  font-size: 11px; color: var(--text-dim);
+  border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px;
+}
+.interview-question-card {
+  background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
+}
+.interview-question-text {
+  font-size: 16px; line-height: 1.6; font-weight: 500;
+}
+.interview-answer-wrap { margin-bottom: 16px; }
+.interview-textarea {
+  width: 100%; background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); padding: 14px;
+  font-family: inherit; font-size: 14px; line-height: 1.6; resize: vertical;
+  transition: border-color .2s;
+}
+.interview-textarea:focus { outline: none; border-color: var(--blue); }
+.interview-wordcount { font-size: 11px; color: var(--text-dim); margin-top: 6px; text-align: right; }
+.interview-actions { display: flex; gap: 12px; }
+
+/* ── Interview result page ── */
+.interview-result-hero {
+  text-align: center; padding: 28px 20px; border-radius: var(--radius);
+  border: 1px solid var(--border); margin-bottom: 24px;
+}
+.strong-result { border-color: var(--green); background: color-mix(in srgb, var(--green) 8%, var(--bg-1)); }
+.partial-result { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 8%, var(--bg-1)); }
+.weak-result   { border-color: var(--red);   background: color-mix(in srgb, var(--red) 8%, var(--bg-1)); }
+.irh-score { font-size: 52px; font-weight: 700; line-height: 1; }
+.irh-max { font-size: 22px; color: var(--text-mute); }
+.irh-label { margin: 10px 0 8px; font-size: 16px; }
+.irh-breakdown { display: flex; gap: 14px; justify-content: center; font-size: 13px; }
+.irh-strong { color: var(--green); font-weight: 600; }
+.irh-partial { color: var(--amber); font-weight: 600; }
+.irh-weak   { color: var(--red); font-weight: 600; }
+.irh-sep { color: var(--text-dim); }
+
+.interview-results-list { display: flex; flex-direction: column; gap: 8px; }
+.interview-result-item {
+  background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.iri-header {
+  display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+}
+.iri-header:hover { background: var(--bg-2); }
+.iri-num { font-size: 11px; color: var(--text-dim); white-space: nowrap; min-width: 24px; }
+.iri-grade-dot {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.grade-strong { background: var(--green); color: #000; }
+.grade-partial { background: var(--amber); color: #000; }
+.grade-weak   { background: var(--red);   color: #fff; }
+.iri-question { flex: 1; font-size: 13px; line-height: 1.4; }
+.iri-score { font-size: 13px; font-weight: 700; color: var(--text-mute); white-space: nowrap; }
+.iri-body { padding: 0 16px 16px; border-top: 1px solid var(--border); }
+.iri-section { margin-top: 14px; }
+.iri-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--text-mute); display: block; margin-bottom: 6px;
+}
+.iri-answer-text {
+  font-size: 13px; color: var(--text); line-height: 1.5;
+  background: var(--bg-2); border-radius: 4px; padding: 10px 12px;
+  white-space: pre-wrap;
+}
+.iri-kw-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.iri-kw {
+  font-size: 11px; border-radius: 4px; padding: 2px 8px; font-family: var(--mono);
+}
+.iri-kw-hit { background: color-mix(in srgb, var(--green) 20%, transparent); color: var(--green); }
+.iri-kw-miss { background: color-mix(in srgb, var(--red) 15%, transparent); color: var(--red); }
+.iri-model-answer {
+  font-size: 13px; color: var(--text); line-height: 1.6;
+  background: color-mix(in srgb, var(--blue) 8%, var(--bg-1));
+  border-left: 3px solid var(--blue);
+  border-radius: 0 4px 4px 0; padding: 10px 14px;
+}
+
+.interview-lab-suggestions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.suggestion-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 16px;
+  text-decoration: none; color: var(--text); transition: border-color .2s;
+}
+.suggestion-card:hover { border-color: var(--blue); }
+.suggestion-icon { font-size: 20px; }
+.suggestion-title { display: block; font-size: 13px; font-weight: 600; }
+.suggestion-sub { display: block; font-size: 11px; color: var(--text-dim); }
+.suggestion-arrow { margin-left: auto; color: var(--text-dim); }
+
+@media (max-width: 640px) {
+  .interview-grid { grid-template-columns: 1fr; }
+  .interview-header { flex-wrap: wrap; }
+}

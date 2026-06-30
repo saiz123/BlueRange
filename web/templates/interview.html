@@ -1,0 +1,90 @@
+{{template "base" .}}
+{{define "title"}}Interview — Q{{.QNum}} of {{.QTotal}} — BlueRange{{end}}
+{{define "content"}}
+<div x-data="interviewTimer({{.TimerSecs}})" x-init="start()" @beforeunload.window="warnLeave($event)">
+
+  <!-- Progress bar -->
+  <div class="interview-progress-bar-wrap">
+    <div class="interview-progress-bar" style="width:{{pct (sub .QNum 1) .QTotal}}%"></div>
+  </div>
+
+  <div class="interview-header">
+    <div class="interview-qnum">Question {{.QNum}} <span class="interview-qtotal">of {{.QTotal}}</span></div>
+    <div class="interview-timer-wrap">
+      <svg class="timer-ring" viewBox="0 0 36 36">
+        <circle class="timer-ring-bg" cx="18" cy="18" r="15.9"/>
+        <circle class="timer-ring-fill" cx="18" cy="18" r="15.9"
+          :stroke-dasharray="circumference"
+          :stroke-dashoffset="dashOffset"
+          :class="timeLeft <= 15 ? 'timer-ring-danger' : (timeLeft <= 30 ? 'timer-ring-warn' : '')"/>
+      </svg>
+      <span class="timer-text" :class="timeLeft <= 15 ? 'timer-danger' : (timeLeft <= 30 ? 'timer-warn' : '')" x-text="timeLeft"></span>
+    </div>
+    <div class="interview-cat-tag">{{.Question.Category}}</div>
+  </div>
+
+  <div class="interview-question-card">
+    <p class="interview-question-text">{{.Question.Question}}</p>
+  </div>
+
+  <form id="answer-form" method="POST" action="/interview/{{.SessionID}}/answer" @submit="submitted=true">
+    <div class="interview-answer-wrap">
+      <textarea
+        name="answer"
+        id="answer"
+        class="interview-textarea"
+        placeholder="Type your answer here… focus on key concepts, not perfect wording."
+        rows="7"
+        x-ref="textarea"
+        @input="wordCount = $el.value.trim().split(/\s+/).filter(Boolean).length"
+      >{{.Draft}}</textarea>
+      <div class="interview-wordcount">
+        <span x-text="wordCount"></span> words
+        <span x-show="wordCount > 0 && wordCount < 20" style="color:var(--amber);margin-left:8px">— keep going, add more detail</span>
+      </div>
+    </div>
+
+    <div class="interview-actions">
+      <button type="submit" class="btn btn-primary" :disabled="submitted">
+        <span x-show="!submitted">Submit Answer →</span>
+        <span x-show="submitted">Saving…</span>
+      </button>
+      <button type="submit" name="answer" value="" class="btn btn-ghost" :disabled="submitted">Skip (no answer)</button>
+    </div>
+  </form>
+
+</div>
+
+<script>
+function interviewTimer(secs) {
+  const circumference = 2 * Math.PI * 15.9;
+  return {
+    total: secs,
+    timeLeft: secs,
+    circumference,
+    submitted: false,
+    wordCount: document.getElementById('answer')?.value.trim().split(/\s+/).filter(Boolean).length || 0,
+    get dashOffset() {
+      return circumference - (this.timeLeft / this.total) * circumference;
+    },
+    start() {
+      const tick = setInterval(() => {
+        if (this.submitted) { clearInterval(tick); return; }
+        this.timeLeft--;
+        if (this.timeLeft <= 0) {
+          clearInterval(tick);
+          this.submitted = true;
+          document.getElementById('answer-form').submit();
+        }
+      }, 1000);
+    },
+    warnLeave(e) {
+      if (!this.submitted) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    }
+  };
+}
+</script>
+{{end}}

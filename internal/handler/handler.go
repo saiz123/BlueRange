@@ -103,6 +103,13 @@ func (h *Handler) Routes() http.Handler {
 		r.Post("/hunt/{key}/submit", h.postSubmitHunt)
 		r.Get("/hunt/{key}/result", h.getHuntResult)
 
+		// Interview simulator
+		r.Get("/interview", h.getInterviewList)
+		r.Post("/interview/start", h.postStartInterview)
+		r.Get("/interview/{id}", h.getInterview)
+		r.Post("/interview/{id}/answer", h.postInterviewAnswer)
+		r.Get("/interview/{id}/result", h.getInterviewResult)
+
 		// Reports & certifications
 		r.Get("/report/lab/{labID}", h.getLabReport)
 		r.Get("/report/alert/{alertID}", h.getLiveAlertReport)
